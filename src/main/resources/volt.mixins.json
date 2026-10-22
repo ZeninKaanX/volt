@@ -1,0 +1,7 @@
+{
+  "required": true,
+  "package": "dev.volt.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": ["MinecraftMixin","CombatMixin","HighlightPacketsMixin"],
+  "injectors": { "defaultRequire": 1 }
+}

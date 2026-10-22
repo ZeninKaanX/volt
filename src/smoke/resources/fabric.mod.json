@@ -1,0 +1,6 @@
+{
+  "schemaVersion": 1, "id": "voltsmoke", "version": "1.0.0", "environment": "client",
+  "entrypoints": { "client": ["dev.volt.smoke.SmokeClient"] },
+  "mixins": ["voltsmoke.mixins.json"],
+  "depends": { "volt": "*" }
+}

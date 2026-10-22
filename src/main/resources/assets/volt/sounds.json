@@ -1,0 +1,34 @@
+{
+  "clip_saved": {
+    "sounds": [
+      {
+        "name": "volt:clip_saved",
+        "stream": false
+      }
+    ]
+  },
+  "record_started": {
+    "sounds": [
+      {
+        "name": "volt:record_started",
+        "stream": false
+      }
+    ]
+  },
+  "marker": {
+    "sounds": [
+      {
+        "name": "volt:marker",
+        "stream": false
+      }
+    ]
+  },
+  "button": {
+    "sounds": [
+      {
+        "name": "volt:button",
+        "stream": false
+      }
+    ]
+  }
+}

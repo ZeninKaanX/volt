@@ -1,0 +1,19 @@
+.gradle/
+build/
+run/
+.idea/
+*.iml
+.DS_Store
+.tools/
+share-server/data/
+__pycache__/
+*.pyc
+
+# Local release outputs, recordings and credentials
+dist/
+*.key
+*.pem
+.env
+.env.*
+!.env.example
+*.log
