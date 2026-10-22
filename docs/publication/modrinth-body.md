@@ -16,7 +16,7 @@ a local clip library and a full-screen editor in a clean interface.
 
 ## Installation
 
-**Current alpha: Minecraft 1.21.10 / 1.21.11, Fabric, Java 21 and matching Fabric API.**
+**Current alpha: Minecraft 1.21.9 / 1.21.10 / 1.21.11, Fabric, Java 21 and matching Fabric API.**
 Install Volt in your instance's `mods` folder. Install **FFmpeg** separately and
 select its executable in Volt settings if it is not available on PATH.
 FFmpeg is not included in the JAR. Prism Flatpak needs an executable accessible

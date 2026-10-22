@@ -1,0 +1,23 @@
+name: Publish verified release files
+on:
+  push:
+    tags:
+      - 'v*'
+permissions:
+  contents: read
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch and verify the exact tested JARs
+        run: python3 scripts/fetch-release-files.py
+      - name: Publish alpha downloads
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" build/release-downloads/* \
+            --verify-tag --prerelease --title "Volt $GITHUB_REF_NAME" \
+            --notes-file docs/publication/release-notes.md

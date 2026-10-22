@@ -1,0 +1,43 @@
+
+> Configure project :
+Fabric Loom: 1.14.10
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Using of the official minecraft mappings is at your own risk!
+Please make sure to read and understand the following license:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# (c) 2020 Microsoft Corporation. These mappings are provided "as-is" and you bear the risk of using them. You may copy and use the mappings for development purposes, but you may not redistribute the mappings complete and unmodified. Microsoft makes no warranties, express or implied, with respect to the mappings provided here.  Use and modification of this document or the source code (in any form) of Minecraft: Java Edition is governed by the Minecraft End User License Agreement available at https://account.mojang.com/documents/minecraft_eula.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+:remapping sources
+
+> Task :compileJava
+> Task :processResources
+> Task :classes
+> Task :jar
+> Task :processIncludeJars UP-TO-DATE
+> Task :sourcesJar
+> Task :compileSmokeJava
+> Task :processSmokeResources UP-TO-DATE
+> Task :smokeClasses
+> Task :smokeJar
+> Task :compileTestJava UP-TO-DATE
+> Task :processTestResources NO-SOURCE
+> Task :testClasses UP-TO-DATE
+> Task :remapJar
+> Task :remapSourcesJar
+> Task :test
+> Task :assemble
+> Task :validateAccessWidener NO-SOURCE
+> Task :check
+> Task :build
+> Task :remapSmokeJar
+
+[Incubating] Problems report is available at: file:///home/eververity/Documents/Codex/2026-10-22-seninle-minecraft-i-in-yeni-bir/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.2.1/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 1m 44s
+13 actionable tasks: 10 executed, 3 up-to-date

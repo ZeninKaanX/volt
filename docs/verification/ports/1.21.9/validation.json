@@ -1,0 +1,11 @@
+{
+  "minecraft": "1.21.9",
+  "loader": "fabric",
+  "sha512": "1347b42a0335d7339b41127de93e76a5c17b024f8b4d708586283db6156f5545cc4590d09283aed77bb02483e0e9bb0d129de46ed114eb744eb327899e108b6f",
+  "status": "runtime-verified",
+  "tests": 27,
+  "failures": 0,
+  "fullscreen": "1920x1080",
+  "recording_seconds": 10.066667,
+  "encoder": "h264_vaapi"
+}

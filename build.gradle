@@ -48,6 +48,7 @@ loom {
             programArgs '--username', 'VoltTester', '--width', '1280', '--height', '800'
             if (project.hasProperty('voltFullscreen')) vmArgs '-Dvolt.fullscreen=true'
             if (project.hasProperty('voltSecondaryDisplay')) vmArgs '-Dvolt.secondaryDisplay=true'
+            if (project.hasProperty('voltTestFrameLimit')) vmArgs "-Dvolt.testFrameLimit=${project.property('voltTestFrameLimit')}"
             if (project.hasProperty('voltAutoTest')) vmArgs '-Dvolt.autoTest=true'
             if (project.hasProperty('voltUiOnly')) vmArgs '-Dvolt.uiOnly=true'
             if (project.hasProperty('voltUiScale')) vmArgs "-Dvolt.uiScale=${project.property('voltUiScale')}"

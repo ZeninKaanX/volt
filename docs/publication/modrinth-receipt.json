@@ -3,8 +3,8 @@
   "slug": "volt-clips",
   "status": "processing",
   "url": "https://modrinth.com/mod/volt-clips",
-  "version_id": "VOO4xPEx",
-  "sha512": "1266e6b5810edb99042cc8ae1e6cd17c2e1e9c956f6bb1c8fc59f960109cd1b07a34ad895a9a9fa4cb909699bb886ee7944d3dc74555f9796d521ca9d369f306",
-  "minecraft": "1.21.10",
+  "version_id": "O3VftGak",
+  "sha512": "1347b42a0335d7339b41127de93e76a5c17b024f8b4d708586283db6156f5545cc4590d09283aed77bb02483e0e9bb0d129de46ed114eb744eb327899e108b6f",
+  "minecraft": "1.21.9",
   "loader": "fabric"
 }

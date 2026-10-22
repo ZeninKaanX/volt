@@ -9,7 +9,7 @@ EVATEX's public Modrinth project lists these 24 stable Minecraft targets:
 
 Reference: https://modrinth.com/mod/evatex-background
 
-Volt has validated **1.21.10 and 1.21.11 Fabric** builds. The 1.21.10 port passed 27 tests and a fullscreen in-game hardware-encoded MP4 recording check. The remaining targets are a
+Volt has validated **1.21.9, 1.21.10 and 1.21.11 Fabric** builds. The 1.21.9 and 1.21.10 ports each passed 27 tests and a fullscreen in-game hardware-encoded MP4 recording check. The remaining targets are a
 porting objective, not supported-version claims. EVATEX also publishes Forge and
 NeoForge builds; Volt does not currently have those loader integrations.
 
