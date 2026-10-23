@@ -1,0 +1,60 @@
+// Minecraft 26.x ships named bytecode. Compile directly without remapping it.
+plugins { id 'java' }
+def voltMinecraft = providers.gradleProperty('voltMinecraft').get()
+def voltTarget = new groovy.json.JsonSlurper().parse(file('minecraft-targets.json'))[voltMinecraft]
+if (voltTarget?.adapter != 'named') throw new GradleException('Expected a named Minecraft target')
+base { archivesName = "volt-mc${voltMinecraft}" }
+repositories { mavenCentral() }
+def preparedDependencies = layout.buildDirectory.dir("named-dependencies/${voltMinecraft}")
+tasks.register('prepareNamedDependencies', Exec) {
+    inputs.files('scripts/prepare-named-dependencies.py', 'scripts/native-smoke.py', 'minecraft-targets.json')
+    inputs.property 'minecraft', voltMinecraft
+    outputs.dir preparedDependencies
+    commandLine 'python3', 'scripts/prepare-named-dependencies.py', voltMinecraft
+}
+tasks.register('preparePort', Exec) {
+    inputs.files(fileTree('src/main/java'), fileTree('src/smoke/java'), file('scripts/prepare-port.py'), file('minecraft-targets.json'))
+    inputs.property 'minecraft', voltMinecraft
+    outputs.dir layout.buildDirectory.dir("ports/${voltMinecraft}")
+    commandLine 'python3', 'scripts/prepare-port.py', voltMinecraft
+}
+sourceSets {
+    main.java.setSrcDirs([layout.buildDirectory.dir("ports/${voltMinecraft}/java")])
+    smoke {
+        java.setSrcDirs([layout.buildDirectory.dir("ports/${voltMinecraft}/smoke")])
+        compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
+        runtimeClasspath += output + compileClasspath
+    }
+}
+dependencies {
+    implementation files(fileTree(preparedDependencies) { include '*.jar' }).builtBy('prepareNamedDependencies')
+    testImplementation platform('org.junit:junit-bom:5.11.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+java { toolchain.languageVersion = JavaLanguageVersion.of(25); withSourcesJar() }
+tasks.withType(JavaCompile).configureEach {
+    dependsOn 'preparePort', 'prepareNamedDependencies'
+    options.release = 25
+    options.encoding = 'UTF-8'
+    options.compilerArgs += ['-proc:none']
+}
+tasks.named('sourcesJar').configure { dependsOn 'preparePort' }
+processResources {
+    inputs.properties(version: project.version, minecraft: voltMinecraft, target: voltTarget.toString(), discordId: providers.gradleProperty('voltDiscordApplicationId').getOrElse(''))
+    filesMatching('fabric.mod.json') { expand version: project.version, minecraftVersion: voltMinecraft, loaderMinimum: voltTarget.loader_minimum, javaMinimum: 25 }
+    filesMatching('volt-discord.properties') { expand discordApplicationId: providers.gradleProperty('voltDiscordApplicationId').getOrElse('') }
+    filesMatching('volt.mixins.json') { filter { line -> line.replace('JAVA_21', 'JAVA_25') } }
+}
+tasks.named('processSmokeResources').configure {
+    filesMatching('voltsmoke.mixins.json') { filter { line -> line.replace('JAVA_21', 'JAVA_25') } }
+}
+tasks.withType(AbstractArchiveTask).configureEach { preserveFileTimestamps = false; reproducibleFileOrder = true }
+test { useJUnitPlatform() }
+tasks.register('smokeJar', Jar) {
+    dependsOn 'smokeClasses'
+    from sourceSets.smoke.output
+    archiveClassifier = 'smoke'
+}
+// Preserve the matrix entry point; this target already uses native names.
+tasks.register('remapSmokeJar') { dependsOn 'smokeJar' }

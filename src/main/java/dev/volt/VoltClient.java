@@ -10,6 +10,7 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.*;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.fabricmc.fabric.api.client.screen.v1.*;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.minecraft.client.*;
 import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.client.gui.screens.PauseScreen;
@@ -59,6 +60,7 @@ public final class VoltClient implements ClientModInitializer {
         recording = KeyBindingHelper.registerKeyBinding(new KeyMapping("key.volt.record", GLFW.GLFW_KEY_F9, category));
         marker = KeyBindingHelper.registerKeyBinding(new KeyMapping("key.volt.marker", GLFW.GLFW_KEY_F7, category));
         ClientTickEvents.END_CLIENT_TICK.register(this::tick);
+        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> { highlights.disconnected(); recorder.stop(); });
         ClientLifecycleEvents.CLIENT_STOPPING.register(client -> { discord.close(); actions.close(); recorder.close(); capture.close(); io.shutdownNow(); });
         ScreenEvents.AFTER_INIT.register((client, screen, w, h) -> {
             boolean atlasPause=screen.getClass().getName().equals("me.koraizen.atlasclient.menu.AtlasPauseScreen");
@@ -86,7 +88,7 @@ public final class VoltClient implements ClientModInitializer {
                 if(config.hud&&recorder.state!=ReplayRecorder.State.OFF){
                     VoltTheme.box(g,hudX,hudY,108,20,0xD014161B);
                     g.fill(hudX+7,hudY+8,hudX+11,hudY+12,recorder.state==ReplayRecorder.State.BUFFERING?VoltTheme.ACCENT:0xFF9399A7);
-                    SmoothRaster.text(g,"VOLT · "+(recorder.longRecording?"REC ":"")+VoltTheme.duration(recorder.availableSeconds()),hudX+16,hudY+4,10,VoltTheme.WHITE,false);
+                    SmoothRaster.text(g,"VOLT · "+(recorder.longRecording?"REC ":"")+VoltTheme.duration(recorder.longRecording?recorder.longSeconds():recorder.availableSeconds()),hudX+16,hudY+4,10,VoltTheme.WHITE,false);
                 }
                 if(message) feedback.render(g,this,screenWidth,screenHeight,hudY);
 
@@ -123,7 +125,7 @@ public final class VoltClient implements ClientModInitializer {
         while (marker.consumeClick()) { recorder.mark("manual"); notify("volt.notice.marked"); }
         highlights.tick(mc);
         if (mc.level != null && config.enabled && !recorder.isExporting() && recorder.state == ReplayRecorder.State.OFF)
-            recorder.start(mc.getWindow().getWidth(), mc.getWindow().getHeight());
+            recorder.start(mc.getWindow().getWidth(), mc.getWindow().getHeight(), org.lwjgl.opengl.GL.getCapabilities().OpenGL33);
         if ((mc.level == null || !config.enabled) && (recorder.state == ReplayRecorder.State.BUFFERING || recorder.state == ReplayRecorder.State.STARTING)) recorder.stop();
         if (mc.player != null) {
             boolean dead = mc.player.isDeadOrDying();

@@ -25,6 +25,9 @@ public final class SmokeClient implements ClientModInitializer {
     private long sceneSince;
     private boolean automaticTriggered;
     private int originalClipCount;
+    private int librarySafetyCount;
+    private boolean sessionLongStarted,sessionDisconnected;
+    private double sessionLongStart;
     @Override public void onInitializeClient() {
         ClientTickEvents.END_CLIENT_TICK.register(mc -> {
             if (stage == 0 && mc.screen != null && !(mc.screen instanceof TitleScreen) && ++ticks > 80) {
@@ -52,6 +55,7 @@ public final class SmokeClient implements ClientModInitializer {
                     org.lwjgl.glfw.GLFW.glfwSetWindowPos(mc.getWindow().handle(),bestX+100,bestY+100);
                 }
                 if(Boolean.getBoolean("volt.fullscreen")&&!mc.getWindow().isFullscreen())mc.getWindow().toggleFullScreen();
+                System.out.println("VOLT_RUNTIME fullscreen="+mc.getWindow().isFullscreen()+" framebuffer="+mc.getWindow().getWidth()+"x"+mc.getWindow().getHeight());
                 mc.options.enableVsync().set(false); mc.options.framerateLimit().set(Integer.getInteger("volt.testFrameLimit",260));
                 mc.options.renderDistance().set(8); mc.options.simulationDistance().set(5);
                 if(System.getProperty("volt.uiScale")!=null){mc.options.guiScale().set(Integer.parseInt(System.getProperty("volt.uiScale")));mc.resizeDisplay();}
@@ -63,6 +67,7 @@ public final class SmokeClient implements ClientModInitializer {
             else if (stage == 1 && ticks == 180) { if(Boolean.getBoolean("volt.editorOnly")){snap(mc,"studio-player.png");click(mc,"Dışa aktar");}else {snap(mc, "02-profile.png"); click(mc, "Ayarlar");} }
             else if (stage == 1 && ticks == 220) { if(Boolean.getBoolean("volt.editorOnly")){snap(mc,"studio-export.png");System.out.println("VOLT_STUDIO editor visual check completed");mc.stop();stage=9;return;}snap(mc, "03-settings.png"); stage = Boolean.getBoolean("volt.menuTest")?7:Boolean.getBoolean("volt.uiOnly")?6:2; ticks = Boolean.getBoolean("volt.feedbackTest")?739:0; }
             else if(stage==6){
+                if(Boolean.getBoolean("volt.librarySafetyTest")){librarySafetyTest(mc);return;}
                 if(Boolean.getBoolean("volt.studioTest")){studioTest(mc);return;}
                 ticks++;
                 mc.getToastManager().clear();
@@ -90,6 +95,7 @@ public final class SmokeClient implements ClientModInitializer {
                 mc.setScreen(null); sceneSince = System.currentTimeMillis(); stage = 4; ticks = 0;
             } else if (stage == 4) {
                 long sceneAge = System.currentTimeMillis() - sceneSince;
+                if(Boolean.getBoolean("volt.sessionSafetyTest")){sessionSafetyTest(mc,sceneAge);return;}
                 if(Boolean.getBoolean("volt.autoTest")){automaticTest(mc,sceneAge);return;}
                 if (sceneAge < 10000) return;
                 if (sceneAge < 15000) { SmokeMetrics.phase = 1; return; }
@@ -134,12 +140,61 @@ public final class SmokeClient implements ClientModInitializer {
                     System.out.println("VOLT_COMPAT Atlas AAC launcher clicked");
                 }
                 if(ticks==340){mc.stop();stage=9;}
+            } else if (stage == 10 && ++ticks == 40) {
+                snap(mc,"v7-session-saved.png");mc.stop();stage=9;
             } else if (stage == 5) {
                 long age = System.currentTimeMillis() - sceneSince;
                 if (age > 3000) SmokeMetrics.phase = 3;
                 if (age > 8000) { try { Files.writeString(mc.gameDirectory.toPath().resolve("benchmark.txt"), SmokeMetrics.report()); } catch (Exception e) { throw new RuntimeException(e); } mc.stop(); stage = 9; }
             }
         });
+    }
+    private void sessionSafetyTest(Minecraft mc,long sceneAge){
+        var v=VoltClient.INSTANCE;
+        if(sceneAge>60000)throw new IllegalStateException("Session safety test timed out: "+v.recorder.state+" "+v.recorder.error);
+        if(sceneAge<2500)return;
+        if(!sessionDisconnected)v.config.enabled=true;
+        if(v.recorder.state==ReplayRecorder.State.ERROR)throw new IllegalStateException(v.recorder.error);
+        if(!sessionLongStarted&&v.recorder.originNanos!=0&&v.recorder.elapsed()>2){
+            v.recorder.toggleLong(v.context());sessionLongStarted=true;sessionLongStart=v.recorder.elapsed();
+        }
+        if(sessionLongStarted&&!sessionDisconnected&&v.recorder.elapsed()>sessionLongStart+3.2){
+            if(!mc.getWindow().isFullscreen())throw new IllegalStateException("Session safety QA must be fullscreen");
+            sessionDisconnected=true;
+            mc.getConnection().getConnection().disconnect(net.minecraft.network.chat.Component.literal("Volt session QA"));
+        }
+        if(sessionDisconnected&&mc.level==null&&v.recorder.state==ReplayRecorder.State.OFF){
+            var clips=v.library.list();
+            if(clips.size()<originalClipCount+1)throw new IllegalStateException("Disconnected session was not saved: "+clips.size()+" / "+originalClipCount);
+            var clip=clips.stream().filter(c->c.recovered&&c.created>=sceneSince).findFirst().orElseThrow();
+            if(!clip.world.contains("Volt Smoke")||clip.seconds<3)throw new IllegalStateException("Session context or duration lost");
+            System.out.println("VOLT_SESSION_SAFETY saved after disconnect, world="+clip.world+" seconds="+clip.seconds+" encoder="+v.recorder.encoder);
+            write(mc,"SESSION_SAVED "+clip.id+" "+clip.world+" "+clip.seconds);
+            mc.setScreen(new VoltScreen(null));stage=10;ticks=0;
+        }
+    }
+    private void librarySafetyTest(Minecraft mc){
+        ticks++;
+        if(ticks==1){
+            librarySafetyCount=VoltClient.INSTANCE.library.list().size();
+            if(librarySafetyCount<1||librarySafetyCount>50||!VoltClient.INSTANCE.library.trash().isEmpty())throw new IllegalStateException("Expected a clean isolated library fixture");
+            if(!mc.getWindow().isFullscreen())throw new IllegalStateException("Library QA must be fullscreen");
+            mc.setScreen(new VoltScreen(null));
+        }
+        if(ticks==20){mc.screen.keyPressed(new KeyEvent(65,0,2));click(mc,"Çöp kutusuna taşı");}
+        if(ticks==60){
+            if(!VoltClient.INSTANCE.library.list().isEmpty()||VoltClient.INSTANCE.library.trash().size()!=librarySafetyCount)throw new IllegalStateException("Trash operation did not complete");
+            click(mc,"Son silinenler");
+        }
+        if(ticks==80){snap(mc,"v7-recently-deleted.png");mc.screen.keyPressed(new KeyEvent(65,0,2));click(mc,"Seçileni geri yükle");}
+        if(ticks==120){
+            if(VoltClient.INSTANCE.library.list().size()!=librarySafetyCount||!VoltClient.INSTANCE.library.trash().isEmpty())throw new IllegalStateException("Restore operation did not complete");
+            click(mc,"Tüm klipler");
+        }
+        if(ticks==150){snap(mc,"v7-library-restored.png");mc.screen.keyPressed(new KeyEvent(65,0,2));mc.screen.keyPressed(new KeyEvent(261,0,0));}
+        if(ticks==180){if(!VoltClient.INSTANCE.library.list().isEmpty())throw new IllegalStateException("Delete shortcut failed");mc.screen.keyPressed(new KeyEvent(90,0,2));}
+        if(ticks==220){if(VoltClient.INSTANCE.library.list().size()!=librarySafetyCount||!VoltClient.INSTANCE.library.trash().isEmpty())throw new IllegalStateException("Undo shortcut failed");snap(mc,"v7-library-undo.png");click(mc,"Ayarlar");click(mc,"Bildirimler ve ses");}
+        if(ticks==250){snap(mc,"v7-feedback-styles.png");System.out.println("VOLT_LIBRARY_SAFETY fullscreen trash/restore and feedback UI passed, clips="+librarySafetyCount);mc.stop();stage=9;}
     }
     private void automaticTest(Minecraft mc,long sceneAge){
         var v=VoltClient.INSTANCE;
@@ -297,6 +352,7 @@ public final class SmokeClient implements ClientModInitializer {
             System.out.println("VOLT_SMOKE clicked "+label);return;
         }
         System.out.println("VOLT_SMOKE missing button "+label+" screen="+mc.screen.getClass().getSimpleName());
+        if(Boolean.getBoolean("volt.strictUiTest"))throw new IllegalStateException("Missing required UI action: "+label);
     }
 
     private void write(Minecraft mc, String value) { try { Files.writeString(mc.gameDirectory.toPath().resolve("smoke-result.txt"), value); } catch (Exception e) { throw new RuntimeException(e); } }

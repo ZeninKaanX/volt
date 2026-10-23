@@ -1,16 +1,28 @@
 plugins { id 'fabric-loom' version '1.14.10' }
 base { archivesName = 'volt' }
 def voltMinecraft = providers.gradleProperty('voltMinecraft').getOrElse('1.21.11')
-def voltFabricApi = providers.gradleProperty('voltFabricApi').getOrElse('0.141.6+1.21.11')
+def voltTargets = new groovy.json.JsonSlurper().parse(file('minecraft-targets.json'))
+if (!voltTargets.containsKey(voltMinecraft)) throw new GradleException("No Volt API adapter exists for Minecraft ${voltMinecraft}")
+def voltTarget = voltTargets[voltMinecraft]
+def voltFabricApi = providers.gradleProperty('voltFabricApi').getOrElse(voltTarget.fabric_api)
+def voltLoader = providers.gradleProperty('voltLoader').getOrElse('0.19.5')
+def voltLoaderMinimum = voltTarget.loader_minimum
 if (voltMinecraft != '1.21.11') {
     sourceSets.main.java.setSrcDirs([layout.buildDirectory.dir("ports/${voltMinecraft}/java")])
     base.archivesName = "volt-mc${voltMinecraft}"
+    tasks.register('preparePort', Exec) {
+        inputs.files(fileTree('src/main/java'), fileTree('src/smoke/java'), file('scripts/prepare-port.py'), file('minecraft-targets.json'))
+        inputs.property 'minecraftVersion', voltMinecraft
+        outputs.dir layout.buildDirectory.dir("ports/${voltMinecraft}")
+        commandLine providers.gradleProperty('voltPython').getOrElse('python3'), 'scripts/prepare-port.py', voltMinecraft
+    }
+    tasks.named('compileJava').configure { dependsOn 'preparePort' }
 }
 repositories { mavenCentral() }
 dependencies {
     minecraft "com.mojang:minecraft:${voltMinecraft}"
     mappings loom.officialMojangMappings()
-    modImplementation 'net.fabricmc:fabric-loader:0.19.5'
+    modImplementation "net.fabricmc:fabric-loader:${voltLoader}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${voltFabricApi}"
     testImplementation platform('org.junit:junit-bom:5.11.4')
     testImplementation 'org.junit.jupiter:junit-jupiter'
@@ -19,12 +31,24 @@ dependencies {
 processResources {
     inputs.property 'version', project.version
     inputs.property 'minecraftVersion', voltMinecraft
+    inputs.property 'loaderMinimum', voltLoaderMinimum
+    inputs.property 'javaMinimum', voltTarget.java
+    inputs.property 'targetAdapter', voltTarget.toString()
     inputs.property 'discordApplicationId', providers.gradleProperty('voltDiscordApplicationId').getOrElse('')
     filesMatching('volt-discord.properties') { expand discordApplicationId: providers.gradleProperty('voltDiscordApplicationId').getOrElse('') }
-    filesMatching('fabric.mod.json') { expand version: project.version, minecraftVersion: voltMinecraft }
+    filesMatching('fabric.mod.json') { expand version: project.version, minecraftVersion: voltMinecraft, loaderMinimum: voltLoaderMinimum, javaMinimum: voltTarget.java }
+    filesMatching('volt.mixins.json') { filter { line -> line.replace('JAVA_21', "JAVA_${voltTarget.java}") } }
+    if (voltTarget.legacy_texture) {
+        filesMatching('volt.mixins.json') { filter { line -> line.replace('"HighlightPacketsMixin"', '"HighlightPacketsMixin","NativeImageAccess"') } }
+    }
 }
 java { toolchain.languageVersion = JavaLanguageVersion.of(21); withSourcesJar() }
-tasks.withType(JavaCompile).configureEach { options.release = 21; options.encoding = 'UTF-8' }
+if (voltMinecraft != '1.21.11') tasks.named('sourcesJar').configure { dependsOn 'preparePort' }
+tasks.withType(JavaCompile).configureEach { options.release = name == 'compileTestJava' ? 21 : voltTarget.java; options.encoding = 'UTF-8' }
+tasks.withType(AbstractArchiveTask).configureEach {
+    preserveFileTimestamps = false
+    reproducibleFileOrder = true
+}
 test { useJUnitPlatform() }
 
 sourceSets {
@@ -33,6 +57,11 @@ sourceSets {
         compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
         runtimeClasspath += output + compileClasspath + sourceSets.main.runtimeClasspath
     }
+}
+if (voltMinecraft != '1.21.11') tasks.named('compileSmokeJava').configure { dependsOn 'preparePort' }
+tasks.named('processSmokeResources').configure {
+    inputs.property 'javaMinimum', voltTarget.java
+    filesMatching('voltsmoke.mixins.json') { filter { line -> line.replace('JAVA_21', "JAVA_${voltTarget.java}") } }
 }
 loom {
     mods {
@@ -50,7 +79,9 @@ loom {
             if (project.hasProperty('voltSecondaryDisplay')) vmArgs '-Dvolt.secondaryDisplay=true'
             if (project.hasProperty('voltTestFrameLimit')) vmArgs "-Dvolt.testFrameLimit=${project.property('voltTestFrameLimit')}"
             if (project.hasProperty('voltAutoTest')) vmArgs '-Dvolt.autoTest=true'
+            if (project.hasProperty('voltSessionSafetyTest')) vmArgs '-Dvolt.sessionSafetyTest=true'
             if (project.hasProperty('voltUiOnly')) vmArgs '-Dvolt.uiOnly=true'
+            if (project.hasProperty('voltLibrarySafetyTest')) vmArgs '-Dvolt.librarySafetyTest=true', '-Dvolt.strictUiTest=true'
             if (project.hasProperty('voltUiScale')) vmArgs "-Dvolt.uiScale=${project.property('voltUiScale')}"
         }
     }

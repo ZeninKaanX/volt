@@ -27,10 +27,12 @@ public final class VoltScreen extends Screen {
     private boolean grid=true,loading,loaded,filterDirty,advanced;
     private Clip selected,contextClip;
     private List<Clip> clips=List.of();
+    private List<Clip> deleted=List.of(),undoDeleted=List.of();
     private Map<String,Long> sizes=Map.of();
     private final Set<String> selection=new HashSet<>();
     private final List<Card> cards=new ArrayList<>();
     private final List<AbstractWidget> popupWidgets=new ArrayList<>();
+    private final List<AbstractWidget> floatingWidgets=new ArrayList<>();
     private int left,contentWidth,galleryTop,columns,cardWidth,thumbHeight,cardHeight,rows;
     private int profileX,profileW,settingsX,settingsW,popupX,popupY,popupW,popupH;
     private float uiScale=1;
@@ -53,12 +55,13 @@ public final class VoltScreen extends Screen {
         uiScale=Math.min(physicalWidth/1280f,physicalHeight/820f);
         width=Math.round(physicalWidth/uiScale);height=Math.round(physicalHeight/uiScale);
         left=RAIL+24;contentWidth=width-left-24;galleryTop=184;
-        cards.clear();popupWidgets.clear();v.profileImages.load();chrome();
+        cards.clear();popupWidgets.clear();floatingWidgets.clear();v.profileImages.load();chrome();
         if(selected!=null)editor();else if(tab==0)library();else if(tab==1)profile();else settings();
         buildPopup();if(!loaded&&!loading)refresh();
     }
     private StudioButton control(int x,int y,int w,int h,String label,String icon,int style,Runnable action){return addRenderableWidget(new StudioButton(x,y,w,h,VoltTheme.literal(label),icon,style,false,action));}
     private StudioButton control(int x,int y,int w,String key,String icon,int style,Runnable action){return control(x,y,w,32,t(key),icon,style,action);}
+    private StudioButton floating(StudioButton button){floatingWidgets.add(button);return button;}
     private StudioButton icon(int x,int y,int size,String label,String glyph,int style,Runnable action){return addRenderableWidget(new StudioButton(x,y,size,size,VoltTheme.literal(label),glyph,style,true,action));}
     private EditBox field(int x,int y,int w,String value,String hint){EditBox f=new SmoothEditBox(font,x,y,w,36,VoltTheme.text(hint),hint.equals("volt.token"));f.setMaxLength(512);f.setValue(value);f.setTextShadow(false);addRenderableWidget(f);return f;}
     private void toggle(int x,int y,String label,BooleanSupplier state,Runnable action){addRenderableWidget(new StudioToggle(x,y,VoltTheme.text(label),state,()->{action.run();v.saveConfig();rebuildWidgets();}));}
@@ -70,14 +73,28 @@ public final class VoltScreen extends Screen {
     private void refresh(){
         if(loading)return;loading=true;
         v.io.submit(()->{
-            List<Clip> data=v.library.list();Map<String,Long> disk=new HashMap<>();
-            for(Clip c:data)try{disk.put(c.id,Files.size(c.path(v.library.directory())));}catch(Exception ignored){}
-            Minecraft.getInstance().execute(()->{clips=data;sizes=Map.copyOf(disk);selection.retainAll(data.stream().map(c->c.id).toList());loaded=true;loading=false;if(minecraft.screen==this)rebuildWidgets();});
+            List<Clip> data=v.library.list(),trash=v.library.trash();Map<String,Long> disk=new HashMap<>();
+            for(Clip c:java.util.stream.Stream.concat(data.stream(),trash.stream()).toList())try{disk.put(c.id,Files.size(v.library.path(c)));}catch(Exception ignored){}
+            Minecraft.getInstance().execute(()->{clips=data;deleted=trash;sizes=Map.copyOf(disk);selection.retainAll(java.util.stream.Stream.concat(data.stream(),trash.stream()).map(c->c.id).toList());loaded=true;loading=false;if(minecraft.screen==this)rebuildWidgets();});
+        });
+    }
+    private void moveClips(List<Clip> targets,boolean restore){
+        if(loading||targets.isEmpty())return;
+        loading=true;v.thumbnails.suspend();popup="";
+        if(selected!=null){if(preview!=null){preview.close();preview=null;}selected=null;tab=0;}
+        v.io.submit(()->{
+            List<Clip> moved=new ArrayList<>();
+            for(Clip c:targets)try{if(restore)v.library.restore(c);else v.library.trash(c);moved.add(c);}catch(Exception ignored){}
+            Minecraft.getInstance().execute(()->{
+                loading=false;selection.clear();undoDeleted=restore?List.of():List.copyOf(moved);
+                v.notify(moved.size()!=targets.size()?"volt.notice.clip_move_failed":restore?"volt.notice.restored":"volt.notice.trashed");
+                refresh();
+            });
         });
     }
     private void save(Clip c){v.io.submit(()->{try{v.library.save(c);}catch(Exception e){v.notify("volt.notice.config_error");}});}
     private List<Clip> filtered(){
-        var stream=clips.stream();
+        var stream=(tab==0&&libraryTab==4?deleted:clips).stream();
         if(tab!=1)stream=stream.filter(c->(libraryTab!=1||c.favorite)&&(libraryTab!=2||!c.captureReason.isEmpty())&&(libraryTab!=3||!c.shareUrl.isEmpty())&&
             (typeFilter==0||typeFilter==1&&c.captureReason.isEmpty()||typeFilter==2&&!c.captureReason.isEmpty())&&
             (worldFilter.isEmpty()||worldFilter.equals(c.world))&&(query.isEmpty()||(c.title+" "+c.world+" "+c.player).toLowerCase(Locale.ROOT).contains(query.toLowerCase(Locale.ROOT)))&&
@@ -110,7 +127,7 @@ public final class VoltScreen extends Screen {
         icon(width-80,12,30,t("volt.nav.1"),"user",0,()->navigate(1));
         icon(width-38,12,30,t("volt.close"),"close",0,this::onClose);
     }
-    private String recordingTitle(){return t(v.recorder.state==ReplayRecorder.State.BUFFERING?"volt.studio.now_clipping":v.recorder.state==ReplayRecorder.State.STARTING?"volt.state.starting":"volt.studio.waiting");}
+    private String recordingTitle(){return v.recorder.longRecording?t("volt.studio.recording_title",VoltTheme.duration(v.recorder.longSeconds())):t(v.recorder.state==ReplayRecorder.State.BUFFERING?"volt.studio.now_clipping":v.recorder.state==ReplayRecorder.State.STARTING?"volt.state.starting":"volt.studio.waiting");}
     private int pageSize(){return Math.max(1,rows)*Math.max(1,grid?columns:1);}
     private void library(){
         search=field(left,72,Math.min(270,contentWidth/4),query,"volt.search");search.setResponder(value->{query=value;page=0;filterDirty=true;});
@@ -121,16 +138,21 @@ public final class VoltScreen extends Screen {
         icon(left+contentWidth-78,74,32,t("volt.refresh"),"refresh",0,this::refresh);
         icon(left+contentWidth-38,74,32,t(grid?"volt.view.grid":"volt.view.list"),grid?"grid":"list",0,()->{grid=!grid;page=0;rebuildWidgets();});
         int tx=left;
-        for(int i=0;i<4;i++){int index=i;int w=i==0?106:138;control(tx,119,w,34,t("volt.studio.library_tab"+i),"",0,()->{libraryTab=index;page=0;rebuildWidgets();});tx+=w+6;}
+        for(int i=0;i<5;i++){int index=i;int w=i==0?106:138;control(tx,119,w,34,t("volt.studio.library_tab"+i),"",0,()->{libraryTab=index;page=0;selection.clear();rebuildWidgets();});tx+=w+6;}
         control(left+contentWidth-166,119,166,32,t("volt.sort."+sortMode),"down",0,()->menu("sort"));
         layoutCards(left,galleryTop,contentWidth);buildCards(filtered());
         icon(left,height-42,30,t("volt.previous"),"back",1,()->{if(page>0){page--;rebuildWidgets();}});
         icon(left+38,height-42,30,t("volt.next"),"next",1,()->{if((page+1)*pageSize()<filtered().size()){page++;rebuildWidgets();}});
         control(width-174,height-42,150,"volt.folder","folder",0,()->Util.getPlatform().openFile(v.library.directory().toFile()));
+        if(!undoDeleted.isEmpty())control(left+132,height-42,140,"volt.trash.undo","back",2,()->moveClips(undoDeleted,true));
         if(!selection.isEmpty()){
-            int bx=left+contentWidth/2-232;
-            control(bx,height-98,190,38,t("volt.studio.favorite_selected",selection.size()),"star",2,()->{for(Clip c:clips)if(selection.contains(c.id)){c.favorite=true;save(c);}selection.clear();rebuildWidgets();});
-            control(bx+200,height-98,176,38,t("volt.studio.clear_selection"),"close",1,()->{selection.clear();rebuildWidgets();});
+            int bx=left+contentWidth/2-290;
+            if(libraryTab==4)floating(control(bx,height-98,190,"volt.trash.restore_selected","restore",2,()->moveClips(deleted.stream().filter(c->selection.contains(c.id)).toList(),true)));
+            else{
+                floating(control(bx,height-98,190,38,t("volt.studio.favorite_selected",selection.size()),"star",2,()->{for(Clip c:clips)if(selection.contains(c.id)){c.favorite=true;save(c);}selection.clear();rebuildWidgets();}));
+                floating(control(bx+200,height-98,180,"volt.trash.move","trash",4,()->moveClips(clips.stream().filter(c->selection.contains(c.id)).toList(),false)));
+            }
+            floating(control(bx+(libraryTab==4?200:390),height-98,176,38,t("volt.studio.clear_selection"),"close",1,()->{selection.clear();rebuildWidgets();}));
         }
     }
     private void layoutCards(int x,int y,int w){left=x;galleryTop=y;contentWidth=w;columns=Math.clamp(w/300,2,4);cardWidth=(w-(columns-1)*16)/columns;thumbHeight=cardWidth*9/16;cardHeight=thumbHeight+87;rows=Math.max(1,(height-y-58)/(grid?cardHeight+18:86));}
@@ -141,12 +163,13 @@ public final class VoltScreen extends Screen {
             int x=grid?left+(i%columns)*(cardWidth+16):left,y=grid?galleryTop+(i/columns)*(cardHeight+18):galleryTop+i*86;
             int w=grid?cardWidth:contentWidth,h=grid?cardHeight:74;
             icon(x+8,y+8,26,t("volt.studio.select_clip"),selection.contains(c.id)?"check":"select",selection.contains(c.id)?2:1,()->{if(!selection.add(c.id))selection.remove(c.id);rebuildWidgets();});
-            icon(x+w-36,y+8,26,t(c.favorite?"volt.unfavorite":"volt.favorite"),"star",c.favorite?2:1,()->{c.favorite=!c.favorite;save(c);rebuildWidgets();});
+            if(libraryTab!=4||tab!=0)icon(x+w-36,y+8,26,t(c.favorite?"volt.unfavorite":"volt.favorite"),"star",c.favorite?2:1,()->{c.favorite=!c.favorite;save(c);rebuildWidgets();});
             if(grid){
-                control(x+5,y+h-32,w-48,28,t(c.shareUrl.isBlank()?"volt.share.create":"volt.share.copy"),"link",0,()->v.actions.share(c));
+                if(tab==0&&libraryTab==4)control(x+5,y+h-32,w-48,28,t("volt.trash.restore"),"restore",0,()->moveClips(List.of(c),true));
+                else control(x+5,y+h-32,w-48,28,t(c.shareUrl.isBlank()?"volt.share.create":"volt.share.copy"),"link",0,()->v.actions.share(c));
                 icon(x+w-35,y+h-32,28,t("volt.studio.more"),"more",0,()->{contextClip=c;popupX=x+w-220;popupY=y+h-28;menu("context");});
             }
-            Button hit=addRenderableWidget(new HitButton(x,y,w,h,VoltTheme.text("volt.open"),()->open(c)));
+            Button hit=addRenderableWidget(new HitButton(x,y,w,h,VoltTheme.text(tab==0&&libraryTab==4?"volt.trash.restore":"volt.open"),()->{if(tab==0&&libraryTab==4)moveClips(List.of(c),true);else open(c);}));
             cards.add(new Card(c,x,y,w,h,grid?thumbHeight:58,!grid,hit));
         }
     }
@@ -165,14 +188,14 @@ public final class VoltScreen extends Screen {
     private void settings(){
         settingsX=left+240;settingsW=width-settingsX-34;
         String[] names={"volt.settings.tab0","volt.settings.tab3","volt.settings.tab1","volt.settings.tab2","volt.studio.shortcuts_title","volt.feedback.title","volt.performance.title"};
-        String[] glyphs={"record","auto","link","user","grid","mic","auto"};int[] indices={0,3,1,2,4,5,6};
+        String[] glyphs={"record","auto","link","user","grid","volume","auto"};int[] indices={0,3,1,2,4,5,6};
         for(int i=0;i<indices.length;i++){int index=indices[i];control(left,168+i*44,202,36,t(names[i]),glyphs[i],settingsTab==index?3:0,()->setting(index));}
         int x=settingsX,w=settingsW;
         if(settingsTab==0){
             toggle(x+w-40,190,"volt.recording.on",()->v.config.enabled,()->{v.config.enabled=!v.config.enabled;v.recorder.resetError();});
             control(x+w-166,253,166,32,v.config.clipSeconds+" "+t("volt.seconds"),"down",1,()->menu("length"));
             control(x+w-166,315,166,32,v.config.height+"p · "+v.config.fps+" FPS","down",1,()->menu("quality"));
-            control(x+w-230,377,230,32,encoderName(v.config.encoder),"down",1,()->{List<String> options=List.of("auto","libx264","h264_nvenc","h264_vaapi","h264_qsv","h264_amf");v.config.encoder=options.get((options.indexOf(v.config.encoder)+1)%options.size());v.recorder.stop();v.saveConfig();rebuildWidgets();});
+            control(x+w-230,377,230,32,encoderName(v.config.encoder),"down",1,()->{List<String> options=List.of("auto","libx264","h264_nvenc","h264_vaapi","h264_qsv","h264_amf","h264_videotoolbox");v.config.encoder=options.get((options.indexOf(v.config.encoder)+1)%options.size());v.recorder.stop();v.saveConfig();rebuildWidgets();});
             control(x+w-166,439,166,32,t(v.config.hud?"volt.hud.anchor"+v.config.hudAnchor:"volt.hud.off"),"down",1,()->{if(!v.config.hud){v.config.hud=true;v.config.hudAnchor=0;}else if(v.config.hudAnchor<3)v.config.hudAnchor++;else v.config.hud=false;v.saveConfig();rebuildWidgets();});
             toggle(x+w-40,501,"volt.audio.on",()->!v.config.audioFormat.equals("off"),()->{v.config.audioFormat=v.config.audioFormat.equals("off")?(System.getProperty("os.name").toLowerCase(Locale.ROOT).contains("linux")?"pulse":System.getProperty("os.name").toLowerCase(Locale.ROOT).contains("win")?"dshow":"avfoundation"):"off";v.recorder.stop();});
             control(x,567,210,32,t("volt.studio.advanced"),advanced?"down":"next",0,()->{advanced=!advanced;rebuildWidgets();});
@@ -200,9 +223,10 @@ public final class VoltScreen extends Screen {
             toggle(x+w-40,275,"volt.performance.gpu_yuv",()->v.config.gpuColorConversion,()->{v.config.gpuColorConversion=!v.config.gpuColorConversion;v.recorder.stop();});
         }else if(settingsTab==5){
             toggle(x+w-40,205,"volt.feedback.animation",()->v.config.notificationAnimation,()->v.config.notificationAnimation=!v.config.notificationAnimation);
-            control(x+w-150,275,150,32,v.config.notificationVolume+" %","mic",1,()->{v.config.notificationVolume=(v.config.notificationVolume+25)%125;v.saveConfig();rebuildWidgets();});
-            control(x+w-150,345,150,32,v.config.buttonVolume+" %","mic",1,()->{v.config.buttonVolume=v.config.buttonVolume>=100?0:Math.min(100,(v.config.buttonVolume/25+1)*25);v.saveConfig();rebuildWidgets();});
-            control(x,435,230,"volt.feedback.preview","play",2,()->v.notify("volt.notice.saved"));
+            control(x+w-150,275,150,32,v.config.notificationVolume+" %","volume",1,()->{v.config.notificationVolume=(v.config.notificationVolume+25)%125;v.saveConfig();rebuildWidgets();});
+            control(x+w-150,345,150,32,v.config.buttonVolume+" %","volume",1,()->{v.config.buttonVolume=v.config.buttonVolume>=100?0:Math.min(100,(v.config.buttonVolume/25+1)*25);v.saveConfig();rebuildWidgets();});
+            control(x+w-214,415,214,32,t("volt.feedback.style_value",t("volt.feedback.style"+v.config.soundStyle)),"down",1,()->{v.config.soundStyle=(v.config.soundStyle+1)%3;v.saveConfig();rebuildWidgets();});
+            control(x,505,230,"volt.feedback.preview","play",2,()->v.notify("volt.notice.feedback_preview"));
         }else control(x,495,230,"volt.studio.open_bindings","grid",2,()->minecraft.setScreen(new KeyBindsScreen(this,minecraft.options)));
     }
     private void editor(){
@@ -217,6 +241,7 @@ public final class VoltScreen extends Screen {
         control(sx+20,height-102,panel-40,"volt.studio.external_player","play",4,()->Util.getPlatform().openFile(selected.path(v.library.directory()).toFile()));
         control(sx+20,height-58,panel-40,38,t(selected.shareUrl.isBlank()?"volt.share.create":"volt.share.copy"),"link",2,()->v.actions.share(selected));
         control(sx+20,522,panel-40,"volt.editor.add_marker","auto",4,()->{selected.markers.add(new Clip.Marker(preview.decoder.position,"manual"));save(selected);v.notify("volt.notice.clip_marked");rebuildWidgets();});
+        control(sx+20,566,panel-40,"volt.trash.move","trash",4,()->moveClips(List.of(selected),false));
         int controlsY=height-237;
         playButton=icon(px,controlsY,34,t("volt.play"),preview.decoder.playing?"pause":"play",0,()->{preview.decoder.toggle();});
         addRenderableWidget(new SeekBar(px+144,controlsY+7,pw-272,selected.seconds,()->preview.decoder.position,preview.decoder::seek));
@@ -284,11 +309,17 @@ public final class VoltScreen extends Screen {
             case "date"->{popupPanel(left+570,110,210,156);for(int i=0;i<3;i++){int n=i;item(i,t("volt.studio.date"+i),"clock",()->{dateFilter=n;page=0;});}}
             case "sort"->{popupPanel(width-224,156,200,156);for(int i=0;i<3;i++){int n=i;item(i,t("volt.sort."+i),"list",()->sortMode=n);}}
             case "context"->{
-                popupPanel(popupX,popupY,220,191);Clip c=contextClip;if(c==null){popup="";return;}
+                popupPanel(popupX,popupY,220,tab==0&&libraryTab==4?121:226);Clip c=contextClip;if(c==null){popup="";return;}
+                if(tab==0&&libraryTab==4){
+                    item(0,t("volt.trash.restore"),"restore",()->moveClips(List.of(c),true));
+                    item(1,t("volt.folder"),"folder",()->Util.getPlatform().openFile(v.library.path(c).getParent().toFile()));
+                    break;
+                }
                 item(0,t("volt.open"),"play",()->open(c));
                 item(1,t(c.shareUrl.isBlank()?"volt.share.create":"volt.share.copy"),"link",()->v.actions.share(c));
                 item(2,t(c.favorite?"volt.unfavorite":"volt.favorite"),"star",()->{c.favorite=!c.favorite;save(c);});
                 item(3,t("volt.folder"),"folder",()->Util.getPlatform().openFile(c.path(v.library.directory()).getParent().toFile()));
+                item(4,t("volt.trash.move"),"trash",()->moveClips(List.of(c),false));
             }
             case "editProfile"->{
                 popupPanel((width-720)/2,(height-566)/2,720,566);
@@ -321,6 +352,9 @@ public final class VoltScreen extends Screen {
             text(g,t("volt.minecraft_profile")+" · "+minecraft.getUser().getName(),x+6,popupY+464,12,VoltTheme.MUTED,false);
         }else text(g,t(switch(popup){case "quality"->"volt.studio.quality";case "length"->"volt.studio.history";case "world"->"volt.studio.world_filter";case "type"->"volt.studio.type0";case "date"->"volt.studio.date0";case "sort"->"volt.studio.sort_title";default->"volt.studio.clip_actions";}),x,y,11,VoltTheme.MUTED,true);
     }
+    // Volt paints an opaque background itself. Older Screen.render implementations
+    // call this after our content and would blur the already-drawn library.
+    @Override public void renderBackground(GuiGraphics g,int mx,int my,float delta){}
     @Override public void render(GuiGraphics g,int mx,int my,float delta){
         g.pose().pushMatrix();g.pose().scale(uiScale,uiScale);mx=Math.round(mx/uiScale);my=Math.round(my/uiScale);
         g.fill(0,0,width,height,VoltTheme.BG);g.fill(0,0,RAIL,height,VoltTheme.PANEL);g.fill(RAIL,0,width,HEADER,VoltTheme.PANEL);
@@ -331,7 +365,7 @@ public final class VoltScreen extends Screen {
         text(g,"VOLT",15,height-188,8,VoltTheme.MUTED,true);
         if(selected!=null){limited(g,selected.title,365,22,width-630,13,VoltTheme.WHITE,true);renderEditor(g);}else if(tab==0)renderLibrary(g);else if(tab==1)renderProfile(g);else renderSettings(g);
         super.render(g,mx,my,delta);
-        if(System.currentTimeMillis()<v.noticeUntil){int w=Math.min(640,width-RAIL-80);VoltTheme.box(g,RAIL+30,height-99,w,38,0xF0323825);limited(g,t(v.notice),RAIL+44,height-89,w-26,12,VoltTheme.WHITE,false);}
+        if(System.currentTimeMillis()<v.noticeUntil){int w=Math.min(640,width-RAIL-80),y=height-(selection.isEmpty()?99:150);VoltTheme.box(g,RAIL+30,y,w,38,0xF0323825);limited(g,t(v.notice),RAIL+44,y+10,w-26,12,VoltTheme.WHITE,false);}
         g.pose().popMatrix();
     }
     private void renderLibrary(GuiGraphics g){
@@ -345,7 +379,7 @@ public final class VoltScreen extends Screen {
             text(g,t(loading?"volt.loading":"volt.empty"),cx-170,cy+5,23,VoltTheme.WHITE,true);text(g,t("volt.empty_hint"),cx-190,cy+49,12,VoltTheme.MUTED,false);
         }
         text(g,(page+1)+" / "+Math.max(1,(data.size()+pageSize()-1)/pageSize()),left+86,height-34,11,VoltTheme.MUTED,false);
-        text(g,t("volt.studio.local_library"),left+180,height-34,11,VoltTheme.MUTED,false);
+        text(g,t(libraryTab==4?"volt.trash.hint":"volt.studio.local_library"),left+(undoDeleted.isEmpty()?180:286),height-34,11,VoltTheme.MUTED,false);
     }
     private void renderCards(GuiGraphics g){
         for(Card card:cards){
@@ -355,14 +389,14 @@ public final class VoltScreen extends Screen {
             Identifier thumb=v.thumbnails.get(c);
             if(!card.list){
                 if(thumb!=null)cover(g,thumb,x+1,y+1,w-2,card.imageHeight,v.thumbnails.aspect(c));else VoltTheme.box(g,x+1,y+1,w-2,card.imageHeight,0xFF252525);
-                if(card.hit.isHoveredOrFocused()){VoltTheme.box(g,x+w/2-23,y+card.imageHeight/2-23,46,46,0xD5111111);SmoothRaster.icon(g,"play",x+w/2-12,y+card.imageHeight/2-12,24,VoltTheme.WHITE);}
+                if(card.hit.isHoveredOrFocused()){VoltTheme.box(g,x+w/2-23,y+card.imageHeight/2-23,46,46,0xD5111111);SmoothRaster.icon(g,tab==0&&libraryTab==4?"restore":"play",x+w/2-12,y+card.imageHeight/2-12,24,VoltTheme.WHITE);}
                 int durationW=SmoothRaster.width(VoltTheme.duration(c.seconds),11,true)+16;
                 VoltTheme.box(g,x+w-durationW-9,y+card.imageHeight-28,durationW,22,0xE6000000);text(g,VoltTheme.duration(c.seconds),x+w-durationW-1,y+card.imageHeight-25,11,VoltTheme.WHITE,true);
                 limited(g,c.title,x+12,y+card.imageHeight+10,w-24,13,VoltTheme.WHITE,true);
                 String metadata=t("volt.studio.on_device")+" · "+megabytes(sizes.getOrDefault(c.id,0L))+" · "+date(c.created);
                 limited(g,metadata,x+12,y+card.imageHeight+33,w-24,10,VoltTheme.MUTED,false);
                 if(h>=card.imageHeight+80)g.fill(x+1,y+h-36,x+w-1,y+h-35,0xFF303030);
-                if(!c.captureReason.isEmpty()){int bx=x+8,by=y+card.imageHeight-29;VoltTheme.box(g,bx,by,91,21,0xE6000000);SmoothRaster.icon(g,"auto",bx+5,by+4,13,VoltTheme.ACCENT);text(g,t("volt.studio.auto_badge"),bx+22,by+4,9,VoltTheme.ACCENT,true);}
+                if(c.recovered||!c.captureReason.isEmpty()){int bx=x+8,by=y+card.imageHeight-29;VoltTheme.box(g,bx,by,91,21,0xE6000000);SmoothRaster.icon(g,c.recovered?"check":"auto",bx+5,by+4,13,VoltTheme.ACCENT);text(g,t(c.recovered?"volt.studio.recovered_badge":"volt.studio.auto_badge"),bx+22,by+4,9,VoltTheme.ACCENT,true);}
             }else{
                 if(thumb!=null)cover(g,thumb,x+8,y+7,104,58,v.thumbnails.aspect(c));
                 limited(g,c.title,x+129,y+14,w-230,14,VoltTheme.WHITE,true);limited(g,c.world+" · "+VoltTheme.duration(c.seconds)+" · "+date(c.created),x+129,y+43,w-230,11,VoltTheme.MUTED,false);
@@ -445,7 +479,8 @@ public final class VoltScreen extends Screen {
             row(g,217,t("volt.feedback.animation"),t("volt.feedback.animation_hint"));
             row(g,287,t("volt.feedback.volume"),t("volt.feedback.volume_hint"));
             row(g,357,t("volt.feedback.button_volume"),t("volt.feedback.button_hint"));
-            limited(g,t("volt.feedback.recording_hint"),x,515,w,12,VoltTheme.MUTED,false);
+            row(g,427,t("volt.feedback.style"),t("volt.feedback.style_hint"));
+            limited(g,t("volt.feedback.recording_hint"),x,585,w,12,VoltTheme.MUTED,false);
         }else{
             String[] actions={"menu","clip","record","marker"};String[] labels={"key.volt.menu","key.volt.clip","key.volt.record","key.volt.marker"};
             for(int i=0;i<4;i++){int y=227+i*62;text(g,t(labels[i]),x,y,14,VoltTheme.WHITE,false);VoltTheme.box(g,x+w-164,y-4,164,31,0xFF292929);text(g,v.keyName(actions[i]),x+w-148,y+1,12,VoltTheme.WHITE,true);g.fill(x,y+43,x+w,y+44,VoltTheme.LINE);}
@@ -481,7 +516,7 @@ public final class VoltScreen extends Screen {
         text(g,t("volt.trim.start"),px+15,height-88,10,VoltTheme.MUTED,false);text(g,t("volt.trim.end"),px+111,height-88,10,VoltTheme.MUTED,false);
         limited(g,t("volt.editor.keys"),px+223,height-60,Math.max(80,pw-470),10,VoltTheme.MUTED,false);
     }
-    private String encoderName(String value){return switch(value){case "auto"->t("volt.encoder.auto");case "libx264"->"CPU · H.264";case "h264_vaapi"->"GPU · VAAPI";case "h264_nvenc"->"GPU · NVIDIA";case "h264_qsv"->"GPU · Intel QSV";case "h264_amf"->"GPU · AMD";default->t("volt.encoder.pending");};}
+    private String encoderName(String value){return switch(value){case "auto"->t("volt.encoder.auto");case "libx264"->"CPU · H.264";case "h264_vaapi"->"GPU · VAAPI";case "h264_nvenc"->"GPU · NVIDIA";case "h264_qsv"->"GPU · Intel QSV";case "h264_amf"->"GPU · AMD";case "h264_videotoolbox"->"GPU · Apple VideoToolbox";default->t("volt.encoder.pending");};}
     private static void cover(GuiGraphics g,Identifier image,int x,int y,int w,int h,float aspect){
         float target=(float)w/h,u0=0,u1=1,v0=0,v1=1;if(target>aspect){float portion=aspect/target;v0=(1-portion)/2;v1=1-v0;}else{float portion=target/aspect;u0=(1-portion)/2;u1=1-u0;}
         g.blit(image,x,y,x+w,y+h,u0,u1,v0,v1);
@@ -513,6 +548,7 @@ public final class VoltScreen extends Screen {
             }
             popup="";rebuildWidgets();return true;
         }
+        for(int i=floatingWidgets.size()-1;i>=0;i--){var widget=floatingWidgets.get(i);if(widget.mouseClicked(e,dbl)){setFocused(widget);if(e.button()==0)setDragging(true);return true;}}
         if(e.button()==1&&selected==null){for(Card c:cards)if(e.x()>=c.x&&e.x()<c.x+c.w&&e.y()>=c.y&&e.y()<c.y+c.h){contextClip=c.clip;popupX=(int)e.x();popupY=(int)e.y();popup="context";rebuildWidgets();return true;}}
         return super.mouseClicked(e,dbl);
     }
@@ -521,6 +557,16 @@ public final class VoltScreen extends Screen {
     @Override public boolean mouseScrolled(double x,double y,double dx,double dy){if(popup.isEmpty()&&selected==null&&(tab==0||tab==1&&profileTab==1)){if(dy<0&&(page+1)*pageSize()<filtered().size())page++;else if(dy>0&&page>0)page--;rebuildWidgets();return true;}return super.mouseScrolled(x/uiScale,y/uiScale,dx,dy);}
     @Override public boolean keyPressed(net.minecraft.client.input.KeyEvent key){
         if(key.key()==256){if(!popup.isEmpty()){popup="";rebuildWidgets();return true;}if(selected!=null){back();return true;}}
+        if(popup.isEmpty()&&!(getFocused() instanceof EditBox)){
+            boolean ctrl=(key.modifiers()&2)!=0;
+            if(ctrl&&key.key()==90&&!undoDeleted.isEmpty()){moveClips(undoDeleted,true);return true;}
+            if(ctrl&&key.key()==70&&selected==null&&tab==0&&search!=null){setFocused(search);search.setFocused(true);return true;}
+            if(ctrl&&key.key()==69&&selected!=null){menu("export");return true;}
+            if(key.key()==261){
+                if(selected!=null){moveClips(List.of(selected),false);return true;}
+                if(tab==0&&libraryTab!=4&&!selection.isEmpty()){moveClips(clips.stream().filter(c->selection.contains(c.id)).toList(),false);return true;}
+            }
+        }
         if(selected==null&&popup.isEmpty()&&tab==0&&(key.modifiers()&2)!=0&&key.key()==65&&!(getFocused() instanceof EditBox)){filtered().stream().limit(50).forEach(c->selection.add(c.id));rebuildWidgets();return true;}
         if(selected!=null&&popup.isEmpty()&&!(getFocused() instanceof EditBox)){
             boolean ctrl=(key.modifiers()&2)!=0;

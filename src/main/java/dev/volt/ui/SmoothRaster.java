@@ -91,12 +91,15 @@ public final class SmoothRaster {
                 case "link"->{c.rotate(-Math.PI/4,12,12);c.drawRoundRect(4,2,16,9,7,7);c.drawRoundRect(4,13,16,9,7,7);c.drawLine(12,8,12,16);}
                 case "more"->{for(int i=0;i<3;i++)c.fillOval(4+i*7,10,3,3);}
                 case "close"->{c.drawLine(6,6,18,18);c.drawLine(18,6,6,18);}
+                case "trash"->{c.drawLine(4,6,20,6);c.drawLine(9,3,15,3);c.drawLine(6,6,7,21);c.drawLine(7,21,17,21);c.drawLine(17,21,18,6);c.drawLine(10,10,10,17);c.drawLine(14,10,14,17);}
+                case "restore"->{c.drawArc(3,3,18,18,40,285);c.drawLine(3,3,3,10);c.drawLine(3,10,10,10);c.drawLine(12,7,12,12);c.drawLine(12,12,16,14);}
                 case "back"->{c.drawLine(18,12,5,12);c.drawLine(5,12,11,6);c.drawLine(5,12,11,18);}
                 case "next"->{c.drawLine(6,12,19,12);c.drawLine(19,12,13,6);c.drawLine(19,12,13,18);}
                 case "down"->{c.drawLine(6,9,12,15);c.drawLine(12,15,18,9);}
                 case "check"->{c.drawLine(4,12,9,17);c.drawLine(9,17,20,6);}
                 case "record"->{c.drawOval(3,3,18,18);c.fillOval(7,7,10,10);}
                 case "mic"->{c.drawRoundRect(9,2,6,13,6,6);c.drawArc(5,7,14,12,180,180);c.drawLine(12,19,12,23);}
+                case "volume"->{p.moveTo(3,9);p.lineTo(7,9);p.lineTo(12,5);p.lineTo(12,19);p.lineTo(7,15);p.lineTo(3,15);p.closePath();c.draw(p);c.drawArc(12,7,7,10,-70,140);c.drawArc(12,3,11,18,-70,140);}
                 case "mute"->{p.moveTo(3,9);p.lineTo(7,9);p.lineTo(12,5);p.lineTo(12,19);p.lineTo(7,15);p.lineTo(3,15);p.closePath();c.draw(p);c.drawLine(17,9,22,15);c.drawLine(22,9,17,15);}
                 case "game"->{c.drawRoundRect(2,7,20,13,7,7);c.drawLine(6,13,10,13);c.drawLine(8,11,8,15);c.fillOval(15,11,2,2);c.fillOval(18,14,2,2);}
                 case "grid"->{for(int i=0;i<4;i++)c.drawRoundRect(3+(i%2)*11,3+(i/2)*11,7,7,1,1);}

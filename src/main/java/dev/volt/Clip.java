@@ -14,6 +14,8 @@ public final class Clip {
     public long created;
     public double seconds;
     public boolean favorite;
+    public boolean recovered;
+    public long trashedAt;
     public String shareUrl = "";
     public String captureReason = "";
     public int comboHits;

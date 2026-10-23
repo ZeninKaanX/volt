@@ -43,6 +43,7 @@ public final class ReplayRecorder implements AutoCloseable {
     private FileChannel lockChannel;
     private FileLock cacheLock;
     private volatile double highlightReservation=Double.POSITIVE_INFINITY,exportReservation=Double.POSITIVE_INFINITY;
+    private volatile RecordingRecovery.Journal longJournal;
     private record TimedMarker(double second, String kind) { }
     public record Context(String player, String world, String dimension) { }
     public ReplayRecorder(VoltConfig config, ClipLibrary library, Path cache, Consumer<String> notice) {
@@ -52,7 +53,11 @@ public final class ReplayRecorder implements AutoCloseable {
     public int fps() { return sessionFps; }
     public double elapsed() { return originNanos == 0 ? 0 : (System.nanoTime() - originNanos) / 1e9; }
     public double availableSeconds() { return state == State.BUFFERING ? Math.min(config.clipSeconds, elapsed()) : 0; }
+    public double longSeconds() { return longRecording ? Math.max(0, elapsed() - longStart) : 0; }
     public void start(int sourceWidth, int sourceHeight) {
+        start(sourceWidth, sourceHeight, true);
+    }
+    public void start(int sourceWidth, int sourceHeight, boolean gpuColorAvailable) {
         if (state != State.OFF) return;
         state = State.STARTING;
         control.submit(() -> {
@@ -63,20 +68,26 @@ public final class ReplayRecorder implements AutoCloseable {
                     cacheLock = lockChannel.tryLock();
                     if (cacheLock == null) throw new IOException("Another Volt recorder is using this game folder");
                     try (var leftovers = Files.list(cache)) {
-                        leftovers.filter(p -> Files.isDirectory(p) && (p.getFileName().toString().startsWith("session-") || p.getFileName().toString().startsWith("export-"))).forEach(ReplayRecorder::deleteTree);
+                        for (Path old : leftovers.filter(Files::isDirectory).toList()) {
+                            if (old.getFileName().toString().startsWith("session-")) {
+                                try { if (RecordingRecovery.recover(old, library, config.ffmpeg) > 0) notice.accept("volt.notice.recovered"); }
+                                catch (Exception e) { notice.accept("volt.notice.recovery_pending"); }
+                                if (!RecordingRecovery.hasJournals(old)) deleteTree(old);
+                            } else if (old.getFileName().toString().startsWith("export-")) deleteTree(old);
+                        }
                     }
                 }
-                if (session != null && !exporting.get()) deleteTree(session);
+                if (session != null && !exporting.get() && !RecordingRecovery.hasJournals(session)) deleteTree(session);
                 session = Files.createTempDirectory(cache, "session-");
                 encoder = Ffmpeg.selectEncoder(config.ffmpeg, config.encoder, config.vaapiDevice, session.resolve("probe.log"));
                 CaptureProfile profile=CaptureProfile.resolve(config,sourceWidth,sourceHeight,!encoder.equals("libx264"));
                 width=profile.width();height=profile.height();sessionFps=profile.fps();
-                Files.writeString(session.resolve("info.txt"), "Encoder=" + encoder + "\nResolution=" + width + "x" + height + "\nFPS=" + sessionFps + "\nPixelFormat="+(config.gpuColorConversion?"nv12":"bgra")+"\n");
+                nv12=config.gpuColorConversion&&gpuColorAvailable;
+                Files.writeString(session.resolve("info.txt"), "Encoder=" + encoder + "\nResolution=" + width + "x" + height + "\nFPS=" + sessionFps + "\nPixelFormat="+(nv12?"nv12":"bgra")+"\n");
                 audio = !config.audioFormat.equals("off") && List.of("pulse", "dshow", "avfoundation").contains(config.audioFormat)
                     && Ffmpeg.probe(List.of(config.ffmpeg, "-hide_banner", "-loglevel", "error", "-f", config.audioFormat,
                     "-i", config.audioDevice, "-t", "0.1", "-f", "null", "-"), session.resolve("audio.log"), 4);
                 if (!config.audioFormat.equals("off") && !audio) notice.accept("volt.notice.no_audio");
-                nv12=config.gpuColorConversion;
                 frames = new FrameMailbox(width * height * (nv12?3:8)/2);
                 List<String> cmd = new ArrayList<>(List.of(config.ffmpeg, "-hide_banner", "-loglevel", "warning", "-y", "-filter_threads", "1", "-filter_complex_threads", "1"));
                 if (encoder.equals("h264_vaapi")) cmd.addAll(List.of("-vaapi_device", config.vaapiDevice));
@@ -89,14 +100,14 @@ public final class ReplayRecorder implements AutoCloseable {
                 if (audio) cmd.addAll(List.of("-map", "1:a:0", "-c:a", "aac", "-b:a", "128k", "-af", "aresample=async=1:first_pts=0"));
                 cmd.addAll(List.of("-c:v", encoder));
                 if (encoder.equals("h264_vaapi")) cmd.addAll(List.of("-vf", nv12?"hwupload":"format=nv12,hwupload"));
-                else cmd.addAll(List.of("-pix_fmt", "yuv420p"));
+                else cmd.addAll(List.of("-pix_fmt", nv12 && !encoder.equals("libx264") ? "nv12" : "yuv420p"));
                 cmd.addAll(List.of("-bf", "0", "-g", "" + sessionFps * 2,
                     "-force_key_frames", "expr:gte(t,n_forced*2)", "-b:v", height >= 1080 ? "10M" : height >= 720 ? "5M" : "3M"));
                 if (encoder.equals("libx264")) cmd.addAll(List.of("-preset", "ultrafast", "-tune", "zerolatency", "-threads", "2", "-sc_threshold", "0"));
                 if (encoder.equals("h264_nvenc")) cmd.addAll(List.of("-preset", "p1", "-tune", "ll"));
                 cmd.addAll(List.of("-shortest", "-f", "segment", "-segment_time", "2", "-reset_timestamps", "1",
                     session.resolve("part-%08d.ts").toString()));
-                process = new ProcessBuilder(cmd).redirectError(session.resolve("recording.log").toFile()).redirectOutput(ProcessBuilder.Redirect.DISCARD).start();
+                process = new ProcessBuilder(Ffmpeg.backgroundCommand(cmd, config.performanceMode)).redirectError(session.resolve("recording.log").toFile()).redirectOutput(ProcessBuilder.Redirect.DISCARD).start();
                 submitted = duplicated = 0; markers.clear(); originNanos = 0;
                 running = true;
                 writer = encoding.submit(this::writeFrames);
@@ -132,6 +143,7 @@ public final class ReplayRecorder implements AutoCloseable {
         return !includeLast && !list.isEmpty() ? list.subList(0, list.size() - 1) : list;
     }
     private synchronized void prune() throws IOException {
+        checkpointLong(elapsed());
         double oldest = longRecording ? Math.min(longStart, elapsed() - config.clipSeconds - 6) : elapsed() - config.clipSeconds - 6;
         final double cutoff=Math.min(oldest,Math.min(highlightReservation,exportReservation));
         for (Path p : parts(false)) if (partNumber(p) * 2 + 2 < cutoff) Files.deleteIfExists(p);
@@ -147,9 +159,20 @@ public final class ReplayRecorder implements AutoCloseable {
         return requestExport(start,end,context,false,reason,comboHits,label);
     }
     public void toggleLong(Context context) {
-        if (state != State.BUFFERING) return;
-        if (!longRecording) { longStart = elapsed(); longRecording = true; notice.accept("volt.notice.long_started"); }
+        if (state != State.BUFFERING) { notice.accept("volt.notice.wait_buffer"); return; }
+        if (!longRecording) {
+            longStart = elapsed(); longRecording = true;
+            var journal = new RecordingRecovery.Journal(session, context, longStart);
+            longJournal = journal;
+            control.submit(() -> { try { journal.checkpoint(longStart, List.of()); } catch (IOException e) { notice.accept("volt.notice.recovery_pending"); } });
+            notice.accept("volt.notice.long_started");
+        }
         else { requestExport(longStart, elapsed(), context, true); }
+    }
+    private void checkpointLong(double end) throws IOException {
+        var journal = longJournal;
+        if (journal != null && longRecording)
+            journal.checkpoint(end, markers.stream().map(m -> new Clip.Marker(m.second, m.kind)).toList());
     }
     private boolean requestExport(double start,double end,Context context,boolean longClip){return requestExport(start,end,context,longClip,"",0,"");}
     private boolean requestExport(double start, double end, Context context, boolean longClip,String reason,int comboHits,String label) {
@@ -157,10 +180,13 @@ public final class ReplayRecorder implements AutoCloseable {
         if (!exporting.compareAndSet(false, true)) { notice.accept("volt.notice.busy"); return false; }
         exportReservation=Math.max(0,start);
         Path sourceSession = session;
+        var sourceJournal = longClip && longJournal != null ? longJournal :
+            new RecordingRecovery.Journal(sourceSession, context, start, reason, comboHits, label);
         notice.accept("volt.notice.saving");
         exports.submit(() -> {
             Path staging = null;
             try {
+                sourceJournal.checkpoint(end, markers.stream().map(m -> new Clip.Marker(m.second, m.kind)).toList());
                 // Wait for the segment containing the keypress to close, up to 5 seconds.
                 long deadline = System.nanoTime() + 5_000_000_000L;
                 while (running && elapsed() < Math.ceil(end / 2) * 2 + .3 && System.nanoTime() < deadline) Thread.sleep(100);
@@ -183,7 +209,7 @@ public final class ReplayRecorder implements AutoCloseable {
                 // Copy complete GOPs: include up to 2 seconds of extra history rather than dropping the key moment.
                 // Exact frame cuts are available through the separate trim action.
                 double actualStart = partNumber(selected.getFirst()) * 2.0;
-                Clip clip = new Clip(); clip.id = UUID.randomUUID().toString(); clip.file = clip.id + ".mp4";
+                Clip clip = new Clip(); clip.id = sourceJournal == null ? UUID.randomUUID().toString() : sourceJournal.id; clip.file = clip.id + ".mp4";
                 clip.title = context.world + " · " + java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("dd.MM HH:mm:ss"));
                 if(!label.isBlank())clip.title=label+" · "+clip.title;
                 clip.captureReason=reason;clip.comboHits=comboHits;
@@ -196,6 +222,10 @@ public final class ReplayRecorder implements AutoCloseable {
                     "-t", "" + clip.seconds, "-c", "copy", "-avoid_negative_ts", "make_zero", "-movflags", "+faststart", output.toString()), staging.resolve("export.log"));
                 Files.move(output, clip.path(library.directory()), StandardCopyOption.REPLACE_EXISTING);
                 library.save(clip);
+                if (sourceJournal != null) {
+                    sourceJournal.complete();
+                    if (longJournal == sourceJournal) longJournal = null;
+                }
                 lastClipMillis = System.currentTimeMillis();
                 notice.accept("volt.notice.saved");
             } catch (Exception e) {
@@ -213,10 +243,26 @@ public final class ReplayRecorder implements AutoCloseable {
         control.submit(() -> {
             running = false; stoppedAt = elapsed();
             try {
+                checkpointLong(stoppedAt);
                 if (writer != null) writer.get(2, TimeUnit.SECONDS);
                 if (process != null && !process.waitFor(3, TimeUnit.SECONDS)) process.destroyForcibly();
             } catch (Exception e) { if (process != null) process.destroyForcibly(); }
+            // This queue runs after an in-progress F8/manual export, keeping both clips safe.
+            Path stoppedSession = session;
+            try {
+                exports.submit(() -> {
+                    exporting.set(true);
+                    try {
+                        if (stoppedSession != null && RecordingRecovery.hasJournals(stoppedSession) &&
+                            RecordingRecovery.recover(stoppedSession, library, config.ffmpeg) > 0) {
+                            lastClipMillis = System.currentTimeMillis(); notice.accept("volt.notice.session_saved");
+                        }
+                    } catch (Exception e) { notice.accept("volt.notice.recovery_pending"); }
+                    finally { exporting.set(false); }
+                }).get(30, TimeUnit.SECONDS);
+            } catch (Exception e) { notice.accept("volt.notice.recovery_pending"); }
             state = State.OFF; longRecording = false;
+            longJournal = null;
             // Keep session files until shutdown so a pending export can safely finish.
         });
     }
@@ -231,8 +277,12 @@ public final class ReplayRecorder implements AutoCloseable {
         catch (IOException ignored) { }
     }
     @Override public void close() {
+        stop();
+        control.shutdown();
+        try { control.awaitTermination(8, TimeUnit.SECONDS); }
+        catch (InterruptedException e) { Thread.currentThread().interrupt(); }
         running = false;
-        if (process != null) process.destroyForcibly();
+        if (process != null && process.isAlive()) process.destroyForcibly();
         control.shutdownNow(); exports.shutdownNow(); encoding.shutdownNow();
         try { if (cacheLock != null) cacheLock.release(); if (lockChannel != null) lockChannel.close(); } catch (IOException ignored) { }
     }

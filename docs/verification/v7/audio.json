@@ -1,0 +1,62 @@
+[
+  {
+    "sound": "clip_saved",
+    "seconds": 0.2373,
+    "peak_db": -27.93
+  },
+  {
+    "sound": "record_started",
+    "seconds": 0.1573,
+    "peak_db": -30.11
+  },
+  {
+    "sound": "marker",
+    "seconds": 0.0923,
+    "peak_db": -31.26
+  },
+  {
+    "sound": "button",
+    "seconds": 0.0573,
+    "peak_db": -30.04
+  },
+  {
+    "sound": "minimal_clip_saved",
+    "seconds": 0.124,
+    "peak_db": -23.64
+  },
+  {
+    "sound": "minimal_record_started",
+    "seconds": 0.0723,
+    "peak_db": -25.27
+  },
+  {
+    "sound": "minimal_marker",
+    "seconds": 0.0493,
+    "peak_db": -21.86
+  },
+  {
+    "sound": "minimal_button",
+    "seconds": 0.0213,
+    "peak_db": -21.62
+  },
+  {
+    "sound": "electric_clip_saved",
+    "seconds": 0.1548,
+    "peak_db": -24.31
+  },
+  {
+    "sound": "electric_record_started",
+    "seconds": 0.1098,
+    "peak_db": -23.0
+  },
+  {
+    "sound": "electric_marker",
+    "seconds": 0.0753,
+    "peak_db": -24.92
+  },
+  {
+    "sound": "electric_button",
+    "seconds": 0.0333,
+    "peak_db": -24.82
+  }
+]

@@ -34,7 +34,7 @@ public final class ClipThumbnails {
                 Path path = directory.resolve(clip.id + (frame<0?".640.png":".strip-"+frame+".png"));
                 if (!Files.isRegularFile(path)) Ffmpeg.run(List.of(v.config.ffmpeg, "-hide_banner", "-loglevel", "error", "-y",
                     "-ss",String.valueOf(frame<0?0:Math.max(0,clip.seconds-.1)*frame/5),"-threads","1",
-                    "-i", clip.path(v.library.directory()).toString(), "-frames:v", "1", "-vf", frame<0?"scale=640:-2":"scale=240:-2", "-threads", "1", path.toString()), directory.resolve("thumbnail.log"));
+                    "-i", v.library.path(clip).toString(), "-frames:v", "1", "-vf", frame<0?"scale=640:-2":"scale=240:-2", "-threads", "1", path.toString()), directory.resolve("thumbnail.log"));
                 if(token!=generation){pending.remove(key,token);return;}
                 NativeImage image;
                 try (InputStream in = Files.newInputStream(path)) { image = NativeImage.read(in); }

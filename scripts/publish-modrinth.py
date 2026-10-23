@@ -27,7 +27,7 @@ def main():
     def request(method, path, data=None, kind='application/json'):
         req = urllib.request.Request('https://api.modrinth.com/v2/' + path,
             data=data, method=method, headers={'Authorization': token,
-            'User-Agent': 'Volt-publisher/0.6.0', 'Content-Type': kind})
+            'User-Agent': 'Volt-publisher/0.7.0', 'Content-Type': kind})
         try:
             with urllib.request.urlopen(req, timeout=120) as response:
                 body = response.read()
@@ -51,16 +51,19 @@ def main():
     with zipfile.ZipFile(jar) as archive:
         meta = json.loads(archive.read('fabric.mod.json'))
         assert meta['id'] == 'volt'
+        assert 'dev/volt/VoltClient.class' in archive.namelist(), 'Missing client implementation'
         assert not any('voltsmoke' in name for name in archive.namelist())
         minecraft = meta['depends']['minecraft'].removeprefix('~')
         assert archive.read('assets/volt/font/ofl.txt')
     digest = hashlib.sha512(jar.read_bytes()).hexdigest()
-    if minecraft != '1.21.11':
-        assert args.validation_file, 'Additional builds require their own runtime validation receipt'
-        receipt = json.loads(args.validation_file.read_text())
-        assert receipt['minecraft'] == minecraft and receipt['loader'] == 'fabric'
-        assert receipt['sha512'] == digest and receipt['status'] == 'runtime-verified'
-        assert receipt['failures'] == 0 and receipt['recording_seconds'] > 0
+    assert args.validation_file, 'Every build requires its own runtime validation receipt'
+    receipt = json.loads(args.validation_file.read_text())
+    assert receipt['minecraft'] == minecraft and receipt['loader'] == 'fabric'
+    assert receipt['sha512'] == digest and receipt['status'] == 'runtime-verified'
+    assert receipt['failures'] == 0 and receipt['recording_seconds'] > 0
+    changelog_file = ROOT / 'docs/publication/changelogs' / (meta['version'] + '.md')
+    assert changelog_file.is_file(), 'Missing changelog for this exact release'
+    changelog = changelog_file.read_text()
     projects = request('GET', 'user/eververity/projects')
     project = next((p for p in projects if p['slug'] == args.slug), None)
     body = (ROOT / 'docs/publication/modrinth-body.md').read_text()
@@ -88,7 +91,7 @@ def main():
         version = existing
     else:
         version = multipart('version', dict(project_id=project_id, name='Volt ' + meta['version'] + ' · ' + minecraft + ' Fabric',
-            version_number=number, changelog='Initial public alpha. GPU NV12 capture, game-priority recording, local clip library and editor, automatic highlights and optional Discord activity.',
+            version_number=number, changelog=changelog,
             dependencies=[dict(project_id='P7dR8mSH', dependency_type='required')],
             game_versions=[minecraft], loaders=['fabric'], version_type='alpha', featured=True,
             file_parts=['file'], primary_file='file', status='listed'), jar)

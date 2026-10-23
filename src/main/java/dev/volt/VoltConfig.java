@@ -35,6 +35,7 @@ public final class VoltConfig {
     public boolean notificationAnimation = true;
     public int notificationVolume = 50;
     public int buttonVolume = 35;
+    public int soundStyle = 0;
     public int hudAnchor = 3;
     public String audioFormat = System.getProperty("os.name").toLowerCase().contains("linux") ? "pulse" : "off";
     public String audioDevice = "@DEFAULT_MONITOR@";
@@ -53,6 +54,7 @@ public final class VoltConfig {
             c.height = c.height == 1080 ? 1080 : 720;
             c.avatar = Math.floorMod(c.avatar, 11);
             c.buttonVolume = Math.clamp(c.buttonVolume, 0, 100);
+            c.soundStyle = Math.clamp(c.soundStyle, 0, 2);
             c.notificationVolume = Math.clamp(c.notificationVolume, 0, 100);
             c.hudAnchor = Math.clamp(c.hudAnchor, 0, 3);
             c.comboHits = Math.clamp(c.comboHits, 3, 8);

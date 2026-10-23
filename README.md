@@ -3,6 +3,11 @@
 Save Minecraft moments without leaving the game. Volt combines instant replay,
 a local clip library and a full-screen editor in a clean interface.
 
+The development source is **0.7.0-alpha.1**, adding recording recovery, recently
+deleted clips, undo and selectable feedback sounds. See the
+[development validation notes](docs/development.md) for its current checks.
+Published downloads remain listed under Installation until the new release is ready.
+
 ## Features
 
 - Save the last 15–120 seconds, or start and stop a longer recording.

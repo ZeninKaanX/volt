@@ -21,6 +21,7 @@ public final class AutoHighlights {
     private final Map<Integer,Long> participation=new LinkedHashMap<>();
     public AutoHighlights(VoltClient v){this.v=v;queue=new HighlightQueue(v.config);rules=new HighlightRules(v.config,this::trigger);}
     private static long now(){return System.nanoTime()/1_000_000;}
+    public void disconnected(){scope(null);}
     private void scope(ClientLevel level){
         if(scope==level)return;
         // Save the available part of a pending encounter before crossing worlds/dimensions.

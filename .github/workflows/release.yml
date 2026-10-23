@@ -13,7 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Fetch and verify the exact tested JARs
-        run: python3 scripts/fetch-release-files.py
+        run: python3 scripts/fetch-release-files.py --version "${GITHUB_REF_NAME#v}"
       - name: Publish alpha downloads
         env:
           GH_TOKEN: ${{ github.token }}

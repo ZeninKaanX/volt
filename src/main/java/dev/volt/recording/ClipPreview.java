@@ -41,7 +41,7 @@ public final class ClipPreview implements AutoCloseable {
                     "-threads","1","-filter_threads","1"));
                 if(!continuous)args.addAll(List.of("-frames:v","1"));
                 args.addAll(List.of("-f","rawvideo","-pix_fmt","rgba","pipe:1"));
-                active=new ProcessBuilder(args).redirectError(ProcessBuilder.Redirect.DISCARD).start();
+                active=new ProcessBuilder(Ffmpeg.backgroundCommand(args, true)).redirectError(ProcessBuilder.Redirect.DISCARD).start();
                 synchronized(this){if(token!=generation||closed){active.destroy();return;}process=active;}
                 long count=0;
                 try(var input=active.getInputStream()){

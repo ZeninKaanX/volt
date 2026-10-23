@@ -58,7 +58,46 @@ class ReplayRecorderTest {
                 assertEquals(5, automatic.comboHits); assertTrue(automatic.title.contains("5-hit combo"));
                 assertTrue(automatic.seconds >= 13, "Reserved pre-roll must survive pruning");
                 assertTrue(Ffmpeg.probe(List.of("ffmpeg", "-v", "error", "-i", automatic.path(library.directory()).toString(), "-f", "null", "-"), root.resolve("auto-decode.log"), 10));
-                recorder.stop(); await(() -> recorder.state == ReplayRecorder.State.OFF, 8000);
+                double finalStart = recorder.elapsed();
+                recorder.toggleLong(context);
+                await(() -> recorder.elapsed() > finalStart + 2.1, 5000);
+                recorder.stop(); await(() -> recorder.state == ReplayRecorder.State.OFF, 10000);
+                assertEquals(4, library.list().size(), "Leaving a world must save an active long recording");
+                Clip finalSession = library.list().stream().filter(c -> c.recovered).findFirst().orElseThrow();
+                assertTrue(finalSession.seconds >= 2);
+                assertEquals(context.world(), finalSession.world);
+                assertTrue(Ffmpeg.probe(List.of("ffmpeg", "-v", "error", "-i", finalSession.path(library.directory()).toString(), "-f", "null", "-"), root.resolve("session-decode.log"), 10));
+            } finally { feeder.shutdownNow(); }
+        }
+    }
+    @Test void capturesCorrectBgraColorsWhenGpuConversionIsUnavailable() throws Exception {
+        Assumptions.assumeTrue(Ffmpeg.probe(List.of("ffmpeg", "-version"), root.resolve("probe.log"), 5));
+        VoltConfig config = new VoltConfig(); config.audioFormat = "off"; config.encoder = "libx264";
+        ClipLibrary library = new ClipLibrary(root.resolve("fallback-clips"));
+        try (ReplayRecorder recorder = new ReplayRecorder(config, library, root.resolve("fallback-cache"), ignored -> { })) {
+            recorder.start(64, 64, false);
+            await(() -> recorder.state != ReplayRecorder.State.STARTING, 15000);
+            assertEquals(ReplayRecorder.State.BUFFERING, recorder.state, recorder.error);
+            assertFalse(recorder.nv12, "Unsupported GPU conversion must fall back without changing the preference");
+            assertTrue(config.gpuColorConversion);
+            ScheduledExecutorService feeder = Executors.newSingleThreadScheduledExecutor();
+            feeder.scheduleAtFixedRate(() -> {
+                byte[] pixels = recorder.frames.acquire();
+                if (pixels != null) {
+                    for (int i = 0; i < pixels.length; i += 4) { pixels[i] = 20; pixels[i+1] = 50; pixels[i+2] = (byte)200; pixels[i+3] = (byte)255; }
+                    recorder.frames.offer(pixels);
+                }
+            }, 0, 33, TimeUnit.MILLISECONDS);
+            try {
+                await(() -> recorder.originNanos != 0 && recorder.elapsed() > 2.2, 8000);
+                recorder.saveReplay(new ReplayRecorder.Context("VoltTester", "Fallback", "minecraft:overworld"));
+                await(() -> !recorder.isExporting(), 10000);
+                Clip clip = library.list().getFirst();
+                Path frame = root.resolve("fallback.png");
+                Ffmpeg.run(List.of("ffmpeg", "-v", "error", "-y", "-i", clip.path(library.directory()).toString(),
+                    "-frames:v", "1", "-threads", "1", frame.toString()), root.resolve("fallback-decode.log"));
+                java.awt.Color color = new java.awt.Color(javax.imageio.ImageIO.read(frame.toFile()).getRGB(20,20));
+                assertTrue(color.getRed() > 150 && color.getGreen() < 100 && color.getBlue() < 60, color.toString());
             } finally { feeder.shutdownNow(); }
         }
     }

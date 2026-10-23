@@ -10,5 +10,5 @@
   "mixins": ["volt.mixins.json"],
   "license": "LicenseRef-All-Rights-Reserved",
   "contact": { "homepage": "https://modrinth.com/mod/volt-clips" },
-  "depends": { "fabricloader": ">=0.18.1", "minecraft": "~${minecraftVersion}", "java": ">=21", "fabric-api": "*" }
+  "depends": { "fabricloader": ">=${loaderMinimum}", "minecraft": "${minecraftVersion}", "java": ">=${javaMinimum}", "fabric-api": "*" }
 }

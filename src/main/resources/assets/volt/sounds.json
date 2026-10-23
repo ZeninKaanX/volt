@@ -30,5 +30,69 @@
         "stream": false
       }
     ]
+  },
+  "minimal_clip_saved": {
+    "sounds": [
+      {
+        "name": "volt:minimal_clip_saved",
+        "stream": false
+      }
+    ]
+  },
+  "minimal_record_started": {
+    "sounds": [
+      {
+        "name": "volt:minimal_record_started",
+        "stream": false
+      }
+    ]
+  },
+  "minimal_marker": {
+    "sounds": [
+      {
+        "name": "volt:minimal_marker",
+        "stream": false
+      }
+    ]
+  },
+  "minimal_button": {
+    "sounds": [
+      {
+        "name": "volt:minimal_button",
+        "stream": false
+      }
+    ]
+  },
+  "electric_clip_saved": {
+    "sounds": [
+      {
+        "name": "volt:electric_clip_saved",
+        "stream": false
+      }
+    ]
+  },
+  "electric_record_started": {
+    "sounds": [
+      {
+        "name": "volt:electric_record_started",
+        "stream": false
+      }
+    ]
+  },
+  "electric_marker": {
+    "sounds": [
+      {
+        "name": "volt:electric_marker",
+        "stream": false
+      }
+    ]
+  },
+  "electric_button": {
+    "sounds": [
+      {
+        "name": "volt:electric_button",
+        "stream": false
+      }
+    ]
   }
 }
