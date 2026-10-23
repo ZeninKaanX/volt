@@ -11,6 +11,7 @@ import re
 import shutil
 import signal
 import subprocess
+import time
 import urllib.request
 import urllib.error
 import zipfile
@@ -112,12 +113,44 @@ def assets(game, existing):
     return CACHE / 'assets', info['id']
 
 
+def acquire_runtime_lock():
+    """Fullscreen tests share the display/GPU; never run two clients together."""
+    if os.name == 'nt':
+        return None
+    import fcntl
+    CACHE.mkdir(parents=True, exist_ok=True)
+    guard = (CACHE / 'runtime.lock').open('a')
+    print('Waiting for the isolated fullscreen test slot', flush=True)
+    fcntl.flock(guard, fcntl.LOCK_EX)
+    return guard
+
+
+def stage_crash_fixture(process, log, run, timeout):
+    """Terminate only our isolated test process group after a durable journal exists."""
+    assert os.name != 'nt', 'Controlled process-group crash QA currently requires Unix'
+    deadline = time.monotonic() + timeout
+    while process.poll() is None:
+        if 'VOLT_CRASH_FIXTURE ready' in log.read_text():
+            for file in sorted((run / 'volt/cache').glob('session-*/long-*.json'), key=lambda p: p.stat().st_mtime, reverse=True):
+                data = json.loads(file.read_text())
+                if data['end'] - data['start'] >= 4 and data.get('markers'):
+                    fixture = dict(journal=str(file.relative_to(ROOT)), clip_id=data['id'], expected_seconds=data['end'] - data['start'])
+                    os.killpg(process.pid, signal.SIGKILL)
+                    process.wait(timeout=10)
+                    assert file.is_file(), 'The abrupt stop lost its journal'
+                    return fixture
+        if time.monotonic() > deadline:
+            raise subprocess.TimeoutExpired(process.args, timeout)
+        time.sleep(.25)
+    return None
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--minecraft', choices=TARGETS, required=True)
     parser.add_argument('--jar', type=Path, required=True)
     parser.add_argument('--smoke-jar', type=Path, required=True)
-    parser.add_argument('--mode', choices=['recording', 'session', 'library'], default='recording')
+    parser.add_argument('--mode', choices=['recording', 'session', 'library', 'crash'], default='recording')
     parser.add_argument('--loader', help='Defaults to the declared minimum loader')
     parser.add_argument('--java', type=Path)
     parser.add_argument('--dependency-cache', type=Path)
@@ -125,6 +158,7 @@ def main():
     parser.add_argument('--modpack', type=Path, help='Optional matching-version mod JAR folder; no user configs or worlds are copied')
     parser.add_argument('--timeout', type=int, default=180)
     args = parser.parse_args()
+    runtime_guard = acquire_runtime_lock()
     mc = args.minecraft; target = TARGETS[mc]; loader = args.loader or target['loader_minimum']
     print(f'Preparing Minecraft {mc}, Fabric Loader {loader}, mode {args.mode}', flush=True)
     manifest = metadata('https://piston-meta.mojang.com/mc/game/version_manifest_v2.json', 'manifest.json')
@@ -147,6 +181,12 @@ def main():
     api = artifact({'path': relative, 'url': 'https://maven.fabricmc.net/' + relative}, args.dependency_cache)
     assets_dir, index = assets(game, args.assets)
     run = ROOT / 'run/native' / mc; mods = run / 'mods'; mods.mkdir(parents=True, exist_ok=True)
+    # Initialize only our isolated test instance. Avoid an onboarding screen and
+    # a second font/resource reload racing the test's first menu interaction.
+    options_file = run / 'options.txt'
+    options = dict(line.split(':', 1) for line in options_file.read_text().splitlines() if ':' in line) if options_file.is_file() else {}
+    options.update(lang='tr_tr', onboardAccessibility='false')
+    options_file.write_text(''.join(key + ':' + value + '\n' for key, value in options.items()))
     for previous in mods.glob('*.jar'):
         previous.unlink()
     if args.modpack:
@@ -167,6 +207,7 @@ def main():
         java = homes[0] / 'bin/java' if homes else Path(os.environ.get('JAVA_HOME', '/usr')) / 'bin/java'
     settings = ['-Dvolt.fullscreen=true', '-Dvolt.secondaryDisplay=true', '-Dvolt.uiScale=3', '-Dvolt.testFrameLimit=75', '-Dvolt.testFfmpeg=ffmpeg']
     if args.mode == 'session': settings.append('-Dvolt.sessionSafetyTest=true')
+    if args.mode == 'crash': settings.append('-Dvolt.crashRecoveryFixture=true')
     if args.mode == 'library': settings += ['-Dvolt.uiOnly=true', '-Dvolt.librarySafetyTest=true', '-Dvolt.strictUiTest=true']
     command = [str(java), '-Xms256m', '-Xmx1536m', '-XX:ActiveProcessorCount=4', '-Dfabric.log.disableAnsi=true', *settings, '-cp', os.pathsep.join(map(str, cp)),
         'net.fabricmc.loader.impl.launch.knot.KnotClient', '--username', 'VoltTester', '--version', mc,
@@ -179,12 +220,23 @@ def main():
     print('Launching isolated fullscreen client; log: ' + str(log.relative_to(ROOT)), flush=True)
     with log.open('w') as output:
         process = subprocess.Popen(command, cwd=run, stdout=output, stderr=subprocess.STDOUT, env=environment, start_new_session=True)
-        try: code = process.wait(timeout=args.timeout)
+        fixture = None
+        try:
+            if args.mode == 'crash': fixture = stage_crash_fixture(process, log, run, args.timeout)
+            code = process.wait(timeout=args.timeout)
         except subprocess.TimeoutExpired:
             os.killpg(process.pid, signal.SIGTERM)
             try: process.wait(timeout=10)
             except subprocess.TimeoutExpired: os.killpg(process.pid, signal.SIGKILL); process.wait()
             raise RuntimeError('Native smoke test timed out; see ' + str(log)) from None
+    if args.mode == 'crash':
+        assert fixture and code == -signal.SIGKILL, f'The controlled crash fixture failed ({code}); see {log}'
+        assert digest(jar, 'sha512') == original_hash
+        receipt = dict(minecraft=mc, sha512=original_hash, status='fixture-staged', **fixture)
+        (run / 'validation-crash-fixture.json').write_text(json.dumps(receipt, indent=2) + '\n')
+        print(json.dumps(receipt, indent=2))
+        if runtime_guard: runtime_guard.close()
+        return
     assert code == 0, f'Native smoke failed ({code}); see {log}'
     assert digest(jar, 'sha512') == original_hash, 'Artifact changed during runtime validation'
     text = log.read_text()
@@ -210,6 +262,8 @@ def main():
         subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', str(clip), '-frames:v', '1', '-threads', '1', str(run / 'native-decoded.png')], check=True)
     (run / ('validation-' + args.mode + '.json')).write_text(json.dumps(receipt, indent=2) + '\n')
     print(json.dumps(receipt, indent=2))
+    if runtime_guard:
+        runtime_guard.close()
 
 
 if __name__ == '__main__':

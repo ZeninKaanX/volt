@@ -30,6 +30,7 @@ public final class SmokeClient implements ClientModInitializer {
     private double sessionLongStart;
     @Override public void onInitializeClient() {
         ClientTickEvents.END_CLIENT_TICK.register(mc -> {
+            if(stage==0&&mc.getOverlay()!=null)return;
             if (stage == 0 && mc.screen != null && !(mc.screen instanceof TitleScreen) && ++ticks > 80) {
                 System.out.println("VOLT_SMOKE startup screen " + mc.screen.getClass().getName());
                 mc.setScreen(new TitleScreen()); ticks = 0;
@@ -59,7 +60,9 @@ public final class SmokeClient implements ClientModInitializer {
                 mc.options.enableVsync().set(false); mc.options.framerateLimit().set(Integer.getInteger("volt.testFrameLimit",260));
                 mc.options.renderDistance().set(8); mc.options.simulationDistance().set(5);
                 if(System.getProperty("volt.uiScale")!=null){mc.options.guiScale().set(Integer.parseInt(System.getProperty("volt.uiScale")));mc.resizeDisplay();}
-                mc.options.languageCode = "tr_tr"; mc.getLanguageManager().setSelected("tr_tr"); mc.reloadResourcePacks();
+                if(!"tr_tr".equals(mc.options.languageCode)){
+                    mc.options.languageCode = "tr_tr"; mc.getLanguageManager().setSelected("tr_tr"); mc.reloadResourcePacks();
+                }
                 originalClipCount=VoltClient.INSTANCE.library.list().size();
                 stage = Boolean.getBoolean("volt.perfTest")?2:1; ticks = 0;
             } else if (stage == 1 && ++ticks == 100) { mc.setScreen(new VoltScreen(null)); }
@@ -95,6 +98,7 @@ public final class SmokeClient implements ClientModInitializer {
                 mc.setScreen(null); sceneSince = System.currentTimeMillis(); stage = 4; ticks = 0;
             } else if (stage == 4) {
                 long sceneAge = System.currentTimeMillis() - sceneSince;
+                if(Boolean.getBoolean("volt.crashRecoveryFixture")){crashRecoveryFixture(mc,sceneAge);return;}
                 if(Boolean.getBoolean("volt.sessionSafetyTest")){sessionSafetyTest(mc,sceneAge);return;}
                 if(Boolean.getBoolean("volt.autoTest")){automaticTest(mc,sceneAge);return;}
                 if (sceneAge < 10000) return;
@@ -148,6 +152,22 @@ public final class SmokeClient implements ClientModInitializer {
                 if (age > 8000) { try { Files.writeString(mc.gameDirectory.toPath().resolve("benchmark.txt"), SmokeMetrics.report()); } catch (Exception e) { throw new RuntimeException(e); } mc.stop(); stage = 9; }
             }
         });
+    }
+    private void crashRecoveryFixture(Minecraft mc,long sceneAge){
+        var v=VoltClient.INSTANCE;
+        if(sceneAge>60000)throw new IllegalStateException("Crash recovery fixture timed out");
+        if(sceneAge<2500)return;
+        v.config.enabled=true;
+        if(v.recorder.state==ReplayRecorder.State.ERROR)throw new IllegalStateException(v.recorder.error);
+        if(!sessionLongStarted&&v.recorder.originNanos!=0&&v.recorder.elapsed()>2){
+            v.recorder.toggleLong(v.context());sessionLongStarted=true;sessionLongStart=v.recorder.elapsed();
+        }
+        if(sessionLongStarted&&!automaticTriggered&&v.recorder.elapsed()>sessionLongStart+1){
+            v.recorder.mark("manual");automaticTriggered=true;
+        }
+        if(sessionLongStarted&&v.recorder.elapsed()>sessionLongStart+6.2){
+            System.out.println("VOLT_CRASH_FIXTURE ready for isolated process termination");stage=11;
+        }
     }
     private void sessionSafetyTest(Minecraft mc,long sceneAge){
         var v=VoltClient.INSTANCE;

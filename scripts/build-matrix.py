@@ -21,6 +21,7 @@ def main():
     parser.add_argument('--minecraft', nargs='+', choices=TARGETS, required=True)
     parser.add_argument('--jobs', type=int, default=2)
     parser.add_argument('--java-home', type=Path)
+    parser.add_argument('--harness-only', action='store_true', help='Rebuild only the developer harness; preserve production artifacts')
     args = parser.parse_args()
     files = []
     for name in INPUTS:
@@ -55,25 +56,32 @@ def main():
             assert named_homes, 'A JDK 25 installation is required for named Minecraft builds'
             build_java = named_homes[0]
         with log.open('w') as output:
-            result = subprocess.run(['bash', './gradlew', 'build', 'remapSmokeJar', '-PvoltMinecraft=' + mc,
+            tasks = ['remapSmokeJar'] if args.harness_only else ['build', 'remapSmokeJar']
+            result = subprocess.run(['bash', './gradlew', *tasks, '-PvoltMinecraft=' + mc,
                 '--console=plain', '--max-workers=3', '--no-daemon'], cwd=work, env={**os.environ, 'JAVA_HOME': str(build_java)},
                 stdout=output, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL)
         receipt = dict(minecraft=mc, version=version, source_sha256=source_hash, exit_code=result.returncode,
             status='compile-failed' if result.returncode else 'compile-verified', log=str(log.relative_to(ROOT)))
+        if args.harness_only and result.returncode == 0:
+            receipt['status'] = 'harness-verified'
         if result.returncode == 0:
             totals = dict(tests=0, failures=0, errors=0, skipped=0)
             for file in (work / 'build/test-results/test').glob('TEST-*.xml'):
                 attributes = ET.parse(file).getroot().attrib
                 for key in totals: totals[key] += int(attributes.get(key, 0))
-            assert totals['tests'] and not totals['failures'] and not totals['errors'], 'Missing or failed matrix tests'
+            if not args.harness_only:
+                assert totals['tests'] and not totals['failures'] and not totals['errors'], 'Missing or failed matrix tests'
             receipt.update(totals)
             destination = ROOT / 'build/libs'; destination.mkdir(parents=True, exist_ok=True)
             jars = []
             for jar in (work / 'build/libs').glob('*.jar'):
+                if args.harness_only and not jar.name.endswith('-smoke.jar'):
+                    continue
                 temporary = destination / (jar.name + '.matrix-tmp')
                 shutil.copy2(jar, temporary); temporary.replace(destination / jar.name); jars.append(jar.name)
             receipt['artifacts'] = jars
-        (work / 'build-receipt.json').write_text(json.dumps(receipt, indent=2) + '\n')
+        receipt_file = 'harness-build-receipt.json' if args.harness_only else 'build-receipt.json'
+        (work / receipt_file).write_text(json.dumps(receipt, indent=2) + '\n')
         return receipt
 
     results = []

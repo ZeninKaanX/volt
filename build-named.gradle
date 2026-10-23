@@ -13,7 +13,7 @@ tasks.register('prepareNamedDependencies', Exec) {
     commandLine 'python3', 'scripts/prepare-named-dependencies.py', voltMinecraft
 }
 tasks.register('preparePort', Exec) {
-    inputs.files(fileTree('src/main/java'), fileTree('src/smoke/java'), file('scripts/prepare-port.py'), file('minecraft-targets.json'))
+    inputs.files(fileTree('src/main/java'), fileTree('src/ports'), fileTree('src/smoke/java'), file('scripts/prepare-port.py'), file('minecraft-targets.json'))
     inputs.property 'minecraft', voltMinecraft
     outputs.dir layout.buildDirectory.dir("ports/${voltMinecraft}")
     commandLine 'python3', 'scripts/prepare-port.py', voltMinecraft

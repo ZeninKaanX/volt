@@ -1,0 +1,22 @@
+{
+  "minecraft": "1.21.1",
+  "loader": "fabric",
+  "fabric_loader": "0.16.14",
+  "version": "0.7.0-alpha.1",
+  "sha512": "cdb6d5324cab9343d1b52cadec16bc586c9512a3645836f6154332e23cde6c1be38c89bce6876109bd2fcb2cb2a8b2715a50b9514081d426cc9bfbfb7ddd9c02",
+  "status": "runtime-verified",
+  "mode": "session",
+  "failures": 0,
+  "new_clips": 1,
+  "log": "run/native/1.21.1/native-session.log",
+  "java_major": 21,
+  "fullscreen": true,
+  "installed_mod_jars": [
+    "fabric-api-0.116.17+1.21.1.jar",
+    "volt-mc1.21.1-0.7.0-alpha.1-smoke.jar",
+    "volt-mc1.21.1-0.7.0-alpha.1.jar"
+  ],
+  "recording_seconds": 3.3,
+  "width": 1280,
+  "height": 720
+}

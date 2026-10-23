@@ -1,0 +1,15 @@
+{
+  "minecraft": "1.21.8",
+  "loader": "fabric",
+  "fabric_loader": "0.16.14",
+  "version": "0.7.0-alpha.1",
+  "sha512": "6841f20819bb7669d6b88f9c9b2cab49b8fe3a21a366a3060eeeb88d7c0d12b5199c0b4c9149e4ca649abc74d09f0df784c0fbaf76427e8999b67f63653ce070",
+  "status": "runtime-verified",
+  "mode": "session",
+  "failures": 0,
+  "new_clips": 1,
+  "log": "run/native/1.21.8/native-session.log",
+  "recording_seconds": 3.3,
+  "width": 1280,
+  "height": 720
+}

@@ -98,15 +98,23 @@ def main():
     verified = request('GET', 'version/' + version['id'])
     assert verified['game_versions'] == [minecraft] and verified['loaders'] == ['fabric']
     assert verified['files'][0]['hashes']['sha512'] == digest
+    screenshot_root = ROOT / 'docs/verification/performance-v6'
+    screenshot_version = '0.6.0 alpha'
     screenshots = [('Clip library', 'studio-library.png'), ('Clip editor', 'studio-player.png'),
                    ('Export controls', 'studio-export.png'), ('Performance settings', 'studio-performance.png')]
+    if meta['version'].startswith('0.7.'):
+        screenshot_root = ROOT / 'docs/verification/v7'
+        screenshot_version = '0.7.0 alpha'
+        screenshots = [('Clip library · 0.7', 'v7-library-restored.png'),
+                       ('Recently deleted · 0.7', 'v7-recently-deleted.png'),
+                       ('Feedback styles · 0.7', 'v7-feedback-styles.png')]
     current = request('GET', 'project/' + project_id)
     for order, (title, filename) in enumerate(screenshots):
         if any(item.get('title') == title for item in current['gallery']):
             continue
-        file = ROOT / 'docs/verification/performance-v6' / filename
+        file = screenshot_root / filename
         query = urllib.parse.urlencode(dict(ext='png', featured=str(order == 0).lower(), title=title,
-            description='Volt 0.6.0 alpha, Minecraft 1.21.11 Fabric.', ordering=order))
+            description=f'Volt {screenshot_version}, Minecraft 1.21.11 Fabric.', ordering=order))
         request('POST', f'project/{project_id}/gallery?' + query, file.read_bytes(), 'image/png')
     if args.submit:
         request('PATCH', 'project/' + project_id, json.dumps({'status': 'processing', 'requested_status': 'approved'}).encode())

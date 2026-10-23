@@ -24,6 +24,38 @@ def java17(text):
 
 
 def named_source(text, filename, mc):
+    if mc in ['26.2', '26.3'] and filename == 'MinecraftMixin.java':
+        code = '''package dev.volt.mixin;
+import net.minecraft.client.Minecraft;
+import dev.volt.VoltClient;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.*;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+@Mixin(Minecraft.class)
+public abstract class MinecraftMixin {
+ @Inject(method="renderFrame",at=@At(value="INVOKE",target="Lcom/mojang/renderpearl/api/device/GpuSurface;present()V"))
+ private void volt$captureBeforePresent(CallbackInfo ci){VoltClient.captureFrame();}
+}
+'''
+        return code.replace('com/mojang/renderpearl/api/device/GpuSurface',
+                            'com/mojang/blaze3d/systems/GpuSurface') if mc == '26.2' else code
+    if mc in ['26.2', '26.3'] and filename == 'BenchmarkMixin.java':
+        return '''package dev.volt.smoke.mixin;
+import net.minecraft.client.Minecraft;
+import dev.volt.smoke.SmokeMetrics;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.*;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+@Mixin(Minecraft.class)
+public class BenchmarkMixin {
+ @Inject(method="renderFrame",at=@At("TAIL")) private void volt$measure(CallbackInfo ci){SmokeMetrics.frame();}
+}
+'''
+    if filename in ['MinecraftMixin.java', 'BenchmarkMixin.java']:
+        text = text.replace('import com.mojang.blaze3d.platform.Window;', 'import com.mojang.blaze3d.systems.RenderSystem;')
+        text = text.replace('@Mixin(Window.class)', '@Mixin(RenderSystem.class)')
+        text = text.replace('"updateDisplay"', '"flipFrame"')
+        text = text.replace('private void volt$', 'private static void volt$')
     text = text.replace('GuiGraphics', 'GuiGraphicsExtractor')
     text = text.replace('renderBackground(', 'extractBackground(')
     text = text.replace('renderContents(', 'extractContents(')
@@ -46,8 +78,48 @@ def named_source(text, filename, mc):
         text = text.replace('.setScreen(', '.gui.setScreen(')
         text = re.sub(r'\b(mc|minecraft)\.screen\b', r'\1.gui.screen()', text)
         text = text.replace('.getMainRenderTarget()', '.gameRenderer.mainRenderTarget()')
+        text = text.replace('mc.options.hideGui', 'mc.gui.hud.isHidden()')
+        text = text.replace('mc.getToastManager()', 'mc.gui.toastManager()')
+        text = text.replace('mc.getOverlay()', 'mc.gui.overlay()')
+        text = text.replace('WorldPresets::createFlatWorldDimensions',
+            'access -> access.lookupOrThrow(net.minecraft.core.registries.Registries.WORLD_PRESET).getOrThrow(WorldPresets.FLAT).value().createWorldDimensions()')
     if mc == '26.3':
         text = text.replace('com.mojang.blaze3d.textures.FilterMode', 'com.mojang.renderpearl.api.textures.FilterMode')
+        text = text.replace('import org.lwjgl.glfw.GLFW;\n', '')
+        text = text.replace('GLFW.GLFW_KEY_', 'com.mojang.blaze3d.platform.InputConstants.KEY_')
+        text = text.replace('InputConstants.Type.KEYSYM', 'InputConstants.Type.KEYBOARD')
+        text = text.replace('mc.getWindow().isMinimized()', 'mc.getWindow().isIconified()')
+        text = text.replace('org.lwjgl.opengl.GL.getCapabilities().OpenGL33', 'false,true')
+        if filename == 'ReplayRecorder.java':
+            text = text.replace('public void start(int sourceWidth, int sourceHeight, boolean gpuColorAvailable) {',
+                '''public void start(int sourceWidth,int sourceHeight,boolean gpuColorAvailable){start(sourceWidth,sourceHeight,gpuColorAvailable,false);}
+    public void start(int sourceWidth, int sourceHeight, boolean gpuColorAvailable, boolean rgbaInput) {''')
+            text = text.replace('nv12?"nv12":"bgra"', 'nv12?"nv12":rgbaInput?"rgba":"bgra"')
+            text = text.replace('nv12?"hwupload":"format=nv12,hwupload"', 'nv12?"hwupload":rgbaInput?"vflip,format=nv12,hwupload":"format=nv12,hwupload"')
+            text = text.replace('"vflip,format=nv12,hwupload"', '"vflip,scale=out_color_matrix=bt709:out_range=tv,format=nv12,hwupload"')
+            text = text.replace('else cmd.addAll(List.of("-pix_fmt",',
+                'else { if(rgbaInput)cmd.addAll(List.of("-vf","vflip,scale=out_color_matrix=bt709:out_range=tv")); cmd.addAll(List.of("-pix_fmt",')
+            text = text.replace('"nv12" : "yuv420p"));', '"nv12" : "yuv420p")); }')
+            text = text.replace('cmd.addAll(List.of("-c:v", encoder));',
+                'cmd.addAll(List.of("-c:v", encoder)); if(rgbaInput)cmd.addAll(List.of("-color_range","tv","-colorspace","bt709","-color_primaries","bt709","-color_trc","bt709"));')
+        text = text.replace('packet.getProgress()', 'packet.progress()')
+        text = text.replace('Util.getPlatform().openFile(', 'dev.volt.compat.PlatformFiles.open(')
+        text = text.replace('import org.lwjgl.util.tinyfd.TinyFileDialogs;\n', '')
+        text = text.replace('TinyFileDialogs.tinyfd_openFileDialog(banner ? "Volt - Cover image" : "Volt - Avatar", "", null, "PNG / JPEG image", false)',
+                            'dev.volt.compat.PlatformFiles.chooseImage()')
+        for code, key in {256:'ESCAPE',258:'TAB',261:'DELETE',263:'LEFT',262:'RIGHT',32:'SPACE',65:'A',69:'E',70:'F',73:'I',79:'O',90:'Z'}.items():
+            constant='com.mojang.blaze3d.platform.InputConstants.KEY_'+key
+            text = re.sub(r'key\.key\(\)=='+str(code)+r'\b', 'key.key()=='+constant, text)
+            text = re.sub(r'new KeyEvent\('+str(code)+r',0,', 'new KeyEvent('+constant+',0,', text)
+        text = text.replace('(key.modifiers()&2)!=0', 'key.hasControlDown()')
+        text = text.replace('(key.modifiers() & 2) != 0', 'key.hasControlDown()')
+        text = re.sub(r'(new KeyEvent\([^,]+,0,)2\)', r'\1com.mojang.blaze3d.platform.InputConstants.MOD_CONTROL)', text)
+        if filename == 'SmokeClient.java':
+            start = text.index('                org.lwjgl.glfw.GLFW.glfwSetWindowAttrib')
+            end = text.index('                if(Boolean.getBoolean("volt.fullscreen")', start)
+            text = text[:start] + '                if(Boolean.getBoolean("volt.secondaryDisplay"))SdlQa.secondary(mc);\n' + text[end:]
+            text = text.replace('mc.getWindow().isFullscreen()', 'SdlQa.fullscreen(mc)')
+            text = text.replace('mc.getWindow().toggleFullScreen()', 'SdlQa.fullscreenOn(mc)')
     return text
 
 
@@ -162,9 +234,50 @@ def main():
                                 'mouseScrolled(double x,double y,double dy)')
             text = text.replace('super.mouseScrolled(x/uiScale,y/uiScale,dx,dy)',
                                 'super.mouseScrolled(x/uiScale,y/uiScale,dy)')
+        if args.minecraft == '1.20':
+            text = text.replace('protected void renderWidget(', 'public void renderWidget(')
         if TARGETS[args.minecraft]['java'] == 17:
             text = java17(text)
         target.write_text(text)
+    if args.minecraft == '26.3':
+        shutil.copy2(ROOT / 'src/ports/26.3/java/dev/volt/recording/GpuCapture.java',
+                     output / 'dev/volt/recording/GpuCapture.java')
+        folder = output / 'dev/volt/compat'
+        folder.mkdir(parents=True, exist_ok=True)
+        (folder / 'PlatformFiles.java').write_text('''package dev.volt.compat;
+import java.io.File;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicReference;
+import net.minecraft.client.Minecraft;
+import org.lwjgl.sdl.SDLDialog;
+import org.lwjgl.sdl.SDLMisc;
+import org.lwjgl.sdl.SDL_DialogFileCallback;
+import org.lwjgl.system.MemoryUtil;
+/** SDL-native platform integration; no shell parsing or render-thread waits. */
+public final class PlatformFiles {
+ private static final AtomicReference<CompletableFuture<String>> PENDING=new AtomicReference<>();
+ // One process-lifetime callback also survives worker interruption during shutdown.
+ private static final SDL_DialogFileCallback CALLBACK=SDL_DialogFileCallback.create((user,files,filter)->{
+  var future=PENDING.getAndSet(null);
+  if(future==null)return;
+  try{long first=files==0?0:MemoryUtil.memGetAddress(files);future.complete(first==0?null:MemoryUtil.memUTF8(first));}
+  catch(Throwable failure){future.completeExceptionally(failure);}
+ });
+ public static String chooseImage() throws Exception {
+  var future=new CompletableFuture<String>();
+  if(!PENDING.compareAndSet(null,future))throw new IllegalStateException("A file chooser is already open");
+  Minecraft.getInstance().execute(()->{
+   try{SDLDialog.SDL_ShowOpenFileDialog(CALLBACK,0,Minecraft.getInstance().getWindow().handle(),null,(CharSequence)null,false);}
+   catch(Throwable failure){PENDING.compareAndSet(future,null);future.completeExceptionally(failure);}
+  });
+  return future.get();
+ }
+ public static void open(File file){
+  if(!SDLMisc.SDL_OpenURL(file.toURI().toASCIIString())&&dev.volt.VoltClient.INSTANCE!=null)
+   dev.volt.VoltClient.INSTANCE.notify("volt.notice.error");
+ }
+}
+''')
     if args.minecraft in LEGACY_INPUT:
         folder = output / 'dev/volt/compat/input'
         folder.mkdir(parents=True, exist_ok=True)
@@ -285,6 +398,27 @@ final class LegacyEvents {
  static boolean mouseReleased(GuiEventListener v,MouseButtonEvent e){return v.mouseReleased(e.x(),e.y(),e.button());}
  static boolean keyPressed(GuiEventListener v,KeyEvent e){return v.keyPressed(e.key(),e.scancode(),e.modifiers());}
  static boolean allow(Screen s,MouseButtonEvent e){return net.fabricmc.fabric.api.client.screen.v1.ScreenMouseEvents.allowMouseClick(s).invoker().allowMouseClick(s,e.x(),e.y(),e.button());}
+}
+''')
+    if args.minecraft == '26.3':
+        (smoke / 'dev/volt/smoke/SdlQa.java').write_text('''package dev.volt.smoke;
+import net.minecraft.client.Minecraft;
+import org.lwjgl.sdl.SDLVideo;
+import org.lwjgl.sdl.SDL_Rect;
+import org.lwjgl.system.MemoryStack;
+final class SdlQa {
+ static boolean fullscreen(Minecraft mc){return (SDLVideo.SDL_GetWindowFlags(mc.getWindow().handle())&SDLVideo.SDL_WINDOW_FULLSCREEN)!=0;}
+ static void fullscreenOn(Minecraft mc){mc.getWindow().setFullscreen(true);mc.getWindow().updateFullscreenIfChanged();}
+ static void secondary(Minecraft mc){
+  var displays=SDLVideo.SDL_GetDisplays();
+  if(displays==null||displays.remaining()<2)throw new IllegalStateException("Secondary display required for isolated fullscreen QA");
+  int bestX=Integer.MIN_VALUE,bestY=0;
+  try(var stack=MemoryStack.stackPush()){
+   var bounds=SDL_Rect.malloc(stack);
+   for(int i=0;i<displays.remaining();i++)if(SDLVideo.SDL_GetDisplayBounds(displays.get(i),bounds)&&bounds.x()>bestX){bestX=bounds.x();bestY=bounds.y();}
+  }
+  if(!SDLVideo.SDL_SetWindowPosition(mc.getWindow().handle(),bestX+100,bestY+100))throw new IllegalStateException("Could not position isolated QA window");
+ }
 }
 ''')
     print('Prepared source adaptation for', args.minecraft)
