@@ -1,23 +1,170 @@
 [
   {
-    "filename": "volt-mc1.21.9-0.6.0-alpha.1.jar",
-    "url": "https://cdn.modrinth.com/data/zkOjCWFT/versions/O3VftGak/volt-mc1.21.9-0.6.0-alpha.1.jar",
-    "sha512": "1347b42a0335d7339b41127de93e76a5c17b024f8b4d708586283db6156f5545cc4590d09283aed77bb02483e0e9bb0d129de46ed114eb744eb327899e108b6f",
+    "filename": "volt-mc1.20-0.7.0-alpha.1.jar",
+    "url": "https://cdn.modrinth.com/data/zkOjCWFT/versions/1Uftydd0/volt-mc1.20-0.7.0-alpha.1.jar",
+    "sha512": "f6fa9644d3cbd870440fe2763e59c461af0e25e41e20ec9dad41de1afe18b129c9be8d71573af68e806c34b252300c6d1a4c9a1648c2f487e1b5e795cfc19017",
+    "minecraft": "1.20",
+    "version": "0.7.0-alpha.1+mc1.20.fabric"
+  },
+  {
+    "filename": "volt-mc1.20.1-0.7.0-alpha.1.jar",
+    "url": "https://cdn.modrinth.com/data/zkOjCWFT/versions/lxDlBMS2/volt-mc1.20.1-0.7.0-alpha.1.jar",
+    "sha512": "ab86e22067a4a4b44400925619fce3e2aad414aed613f585b02892c825552a631455325b52c21856f3f675f1be0796716cd8f09b8662045be554183d37e45ed4",
+    "minecraft": "1.20.1",
+    "version": "0.7.0-alpha.1+mc1.20.1.fabric"
+  },
+  {
+    "filename": "volt-mc1.20.2-0.7.0-alpha.1.jar",
+    "url": "https://cdn.modrinth.com/data/zkOjCWFT/versions/291G31xB/volt-mc1.20.2-0.7.0-alpha.1.jar",
+    "sha512": "e5d49a693d1d614fd303ea6928f76e4df92a0d72022c5b9900770c376c63c1e811778906d88dc6f57687e24226714a0095d73c32976cba180d5e30cf2543477c",
+    "minecraft": "1.20.2",
+    "version": "0.7.0-alpha.1+mc1.20.2.fabric"
+  },
+  {
+    "filename": "volt-mc1.20.3-0.7.0-alpha.1.jar",
+    "url": "https://cdn.modrinth.com/data/zkOjCWFT/versions/oxUmtnte/volt-mc1.20.3-0.7.0-alpha.1.jar",
+    "sha512": "75bcbadeacea94aa1bf1cb70a3be710410defe7945626e4ea004d172b34617cae608694bfc1e1dd24ed4488e6fb0783fb53411aa7345e761fc9029dff2b6dbeb",
+    "minecraft": "1.20.3",
+    "version": "0.7.0-alpha.1+mc1.20.3.fabric"
+  },
+  {
+    "filename": "volt-mc1.20.4-0.7.0-alpha.1.jar",
+    "url": "https://cdn.modrinth.com/data/zkOjCWFT/versions/we0lEoDW/volt-mc1.20.4-0.7.0-alpha.1.jar",
+    "sha512": "ef4d10e3a97fd4835188339b26f5f0f46dfcffaf987a392ee1a19099af9cedd4ca0aeaee2d7a0c1cd518d685ff09c17d1a5b67c42cb2e361c05319228d63c031",
+    "minecraft": "1.20.4",
+    "version": "0.7.0-alpha.1+mc1.20.4.fabric"
+  },
+  {
+    "filename": "volt-mc1.20.5-0.7.0-alpha.1.jar",
+    "url": "https://cdn.modrinth.com/data/zkOjCWFT/versions/a3nKHZsu/volt-mc1.20.5-0.7.0-alpha.1.jar",
+    "sha512": "b2a4e76b8bf176052c359d7e804f1b782c1228f0aa876732ddcefecd5f40ab50870954095085fc19ff4be7ce7cf9e7b63a314d22e1f3891b8db08051b1bdb25d",
+    "minecraft": "1.20.5",
+    "version": "0.7.0-alpha.1+mc1.20.5.fabric"
+  },
+  {
+    "filename": "volt-mc1.20.6-0.7.0-alpha.1.jar",
+    "url": "https://cdn.modrinth.com/data/zkOjCWFT/versions/G1q7ydXA/volt-mc1.20.6-0.7.0-alpha.1.jar",
+    "sha512": "14261b9bc3a750cacdd9caf6bd9765b1ff71fd59f74b602960bf581e51077b55f2d0763f38755b676032f6c368c467c6b60720b8bfa2c41106038e2219b5db76",
+    "minecraft": "1.20.6",
+    "version": "0.7.0-alpha.1+mc1.20.6.fabric"
+  },
+  {
+    "filename": "volt-mc1.21-0.7.0-alpha.1.jar",
+    "url": "https://cdn.modrinth.com/data/zkOjCWFT/versions/dsMjp4iX/volt-mc1.21-0.7.0-alpha.1.jar",
+    "sha512": "4d28ec774349a3878c5b84cac7ee485496789f2cbcfecf625c0eb5dec207237eb4db5da38916e4fb28b73dd5f915c1c9dd39f855834a32d2d1a090c385d7a7eb",
+    "minecraft": "1.21",
+    "version": "0.7.0-alpha.1+mc1.21.fabric"
+  },
+  {
+    "filename": "volt-mc1.21.1-0.7.0-alpha.1.jar",
+    "url": "https://cdn.modrinth.com/data/zkOjCWFT/versions/6yI5wQPz/volt-mc1.21.1-0.7.0-alpha.1.jar",
+    "sha512": "cdb6d5324cab9343d1b52cadec16bc586c9512a3645836f6154332e23cde6c1be38c89bce6876109bd2fcb2cb2a8b2715a50b9514081d426cc9bfbfb7ddd9c02",
+    "minecraft": "1.21.1",
+    "version": "0.7.0-alpha.1+mc1.21.1.fabric"
+  },
+  {
+    "filename": "volt-mc1.21.2-0.7.0-alpha.1.jar",
+    "url": "https://cdn.modrinth.com/data/zkOjCWFT/versions/y1dmlBuP/volt-mc1.21.2-0.7.0-alpha.1.jar",
+    "sha512": "31a41ff2ff70e6aeca306dca482c1eb68441c5a58a611893942ead1cf20c0915856be12b6cc20b1beb540b5776e49d809266fae9491e4adf1f4c82dfa8771807",
+    "minecraft": "1.21.2",
+    "version": "0.7.0-alpha.1+mc1.21.2.fabric"
+  },
+  {
+    "filename": "volt-mc1.21.3-0.7.0-alpha.1.jar",
+    "url": "https://cdn.modrinth.com/data/zkOjCWFT/versions/hZS1jZko/volt-mc1.21.3-0.7.0-alpha.1.jar",
+    "sha512": "e70cd3751188c57a4edee5e05727bdd353ef2e10e55dbedccf017ac7cfa09037502b13574f0b04dd64e79d66954f3fa63bb79263d204d5a1cd6989fb08caf623",
+    "minecraft": "1.21.3",
+    "version": "0.7.0-alpha.1+mc1.21.3.fabric"
+  },
+  {
+    "filename": "volt-mc1.21.4-0.7.0-alpha.1.jar",
+    "url": "https://cdn.modrinth.com/data/zkOjCWFT/versions/EIjTRNV0/volt-mc1.21.4-0.7.0-alpha.1.jar",
+    "sha512": "940ee1572e29b69c1df2b8deb5756f2515eb1882ef629d88374febf268730810c90c46887e83c42da1b0a581f74db574cec9406a18602aa56b910b6c65c0be74",
+    "minecraft": "1.21.4",
+    "version": "0.7.0-alpha.1+mc1.21.4.fabric"
+  },
+  {
+    "filename": "volt-mc1.21.5-0.7.0-alpha.1.jar",
+    "url": "https://cdn.modrinth.com/data/zkOjCWFT/versions/OcNAz17D/volt-mc1.21.5-0.7.0-alpha.1.jar",
+    "sha512": "a4b064bb33452e6825448c779a558bebeaba08259f293d18649cc7719c4a0cee73886649e4c05e247597003e755ffa5f6f0776f6e5af60ad66c64308a739ba36",
+    "minecraft": "1.21.5",
+    "version": "0.7.0-alpha.1+mc1.21.5.fabric"
+  },
+  {
+    "filename": "volt-mc1.21.6-0.7.0-alpha.1.jar",
+    "url": "https://cdn.modrinth.com/data/zkOjCWFT/versions/Dqq0CpPd/volt-mc1.21.6-0.7.0-alpha.1.jar",
+    "sha512": "708af655a445b70a25f63449086d7cc71fbc81c981e56d34432002f6a62f083eeeec26913f4d013e41af3c3843922c947f9d3c09270effc42e43106686143fa6",
+    "minecraft": "1.21.6",
+    "version": "0.7.0-alpha.1+mc1.21.6.fabric"
+  },
+  {
+    "filename": "volt-mc1.21.7-0.7.0-alpha.1.jar",
+    "url": "https://cdn.modrinth.com/data/zkOjCWFT/versions/PGzXMH5O/volt-mc1.21.7-0.7.0-alpha.1.jar",
+    "sha512": "186ffdc61faaba375a8b306708dfcd060df7d88f729bf55f6a4a8a4ad7ae4035bd0746dd18a25a432a18d81c2a4c990e3bca58803b745b95e0a7d639a099da14",
+    "minecraft": "1.21.7",
+    "version": "0.7.0-alpha.1+mc1.21.7.fabric"
+  },
+  {
+    "filename": "volt-mc1.21.8-0.7.0-alpha.1.jar",
+    "url": "https://cdn.modrinth.com/data/zkOjCWFT/versions/TgaIOn61/volt-mc1.21.8-0.7.0-alpha.1.jar",
+    "sha512": "2c8bce440b9f7625f1aa9f8076811737a7c8d3ebb688a15faaff5399630c054e3c46b3593052bb00190d014a73f165930c89edb1fa6f78a28dc14013c730f16e",
+    "minecraft": "1.21.8",
+    "version": "0.7.0-alpha.1+mc1.21.8.fabric"
+  },
+  {
+    "filename": "volt-mc1.21.9-0.7.0-alpha.1.jar",
+    "url": "https://cdn.modrinth.com/data/zkOjCWFT/versions/F1HIHIxm/volt-mc1.21.9-0.7.0-alpha.1.jar",
+    "sha512": "2a2c95f49b9009140c95a46ce891e262ea6d55a63042a3bd4173291b01301536fdf4cf82788716f7056bb5057ce80ef8ccc4e67c94c6e514c5788275ee01f914",
     "minecraft": "1.21.9",
-    "version": "0.6.0-alpha.1+mc1.21.9.fabric"
+    "version": "0.7.0-alpha.1+mc1.21.9.fabric"
   },
   {
-    "filename": "volt-mc1.21.10-0.6.0-alpha.1.jar",
-    "url": "https://cdn.modrinth.com/data/zkOjCWFT/versions/VOO4xPEx/volt-mc1.21.10-0.6.0-alpha.1.jar",
-    "sha512": "1266e6b5810edb99042cc8ae1e6cd17c2e1e9c956f6bb1c8fc59f960109cd1b07a34ad895a9a9fa4cb909699bb886ee7944d3dc74555f9796d521ca9d369f306",
+    "filename": "volt-mc1.21.10-0.7.0-alpha.1.jar",
+    "url": "https://cdn.modrinth.com/data/zkOjCWFT/versions/eIIJ1CiD/volt-mc1.21.10-0.7.0-alpha.1.jar",
+    "sha512": "a2abdd5e2342806dcd30edddeac82995c8bd1b05b298af8aab02cb820ddae69154cf4feaceef62eaaf79032afd585ee5dea3842d5a9f95c2e5de4fada0bcab1a",
     "minecraft": "1.21.10",
-    "version": "0.6.0-alpha.1+mc1.21.10.fabric"
+    "version": "0.7.0-alpha.1+mc1.21.10.fabric"
   },
   {
-    "filename": "volt-0.6.0-alpha.1.jar",
-    "url": "https://cdn.modrinth.com/data/zkOjCWFT/versions/TZ7uR6fO/volt-0.6.0-alpha.1.jar",
-    "sha512": "5985b54daa1bea399ebb9d6a6ce00be1055f424db2f5f5a9debf3bd0015cd8e4ea3541a92152337829477bc0b6266f6f80606b4304596acc8fafa240f51ee681",
+    "filename": "volt-0.7.0-alpha.1.jar",
+    "url": "https://cdn.modrinth.com/data/zkOjCWFT/versions/deEfGAPO/volt-0.7.0-alpha.1.jar",
+    "sha512": "c56adef48dce097d02111dcdcaa5792e39d7efee99dcbfc9ca5e20473326a3d4a0f2b51d0efa731ba911cd73e5925f02b6943d199d100b7420ff0b69a73299f4",
     "minecraft": "1.21.11",
-    "version": "0.6.0-alpha.1+mc1.21.11.fabric"
+    "version": "0.7.0-alpha.1+mc1.21.11.fabric"
+  },
+  {
+    "filename": "volt-mc26.1-0.7.0-alpha.1.jar",
+    "url": "https://cdn.modrinth.com/data/zkOjCWFT/versions/7ypQhDiP/volt-mc26.1-0.7.0-alpha.1.jar",
+    "sha512": "0c7ae2d9f308993495edad52162029165d68142dba318031dc089016fc8d8405c332383c6d04b7c99e758655ac7b8d858749f16d6db6dc8107f3729a0461bfd0",
+    "minecraft": "26.1",
+    "version": "0.7.0-alpha.1+mc26.1.fabric"
+  },
+  {
+    "filename": "volt-mc26.1.1-0.7.0-alpha.1.jar",
+    "url": "https://cdn.modrinth.com/data/zkOjCWFT/versions/vNK92IJK/volt-mc26.1.1-0.7.0-alpha.1.jar",
+    "sha512": "bdf0c1756107124f9312397ee95102f3d9091e4e2b72a0065e3106cb434e11236f234f70a908a5d780cdbd558b5229f634a5eefda012f6b48d7e221c65afcab9",
+    "minecraft": "26.1.1",
+    "version": "0.7.0-alpha.1+mc26.1.1.fabric"
+  },
+  {
+    "filename": "volt-mc26.1.2-0.7.0-alpha.1.jar",
+    "url": "https://cdn.modrinth.com/data/zkOjCWFT/versions/oRFEPyxF/volt-mc26.1.2-0.7.0-alpha.1.jar",
+    "sha512": "97d99a13c750cd4d77de47cd4aa33fc212bcbe92f15b4efe65649ef4d7273f9b5b5b0b3e7b169beb6d1f0d83f748db75a962f2234c8391f2d15df1bce5763272",
+    "minecraft": "26.1.2",
+    "version": "0.7.0-alpha.1+mc26.1.2.fabric"
+  },
+  {
+    "filename": "volt-mc26.2-0.7.0-alpha.1.jar",
+    "url": "https://cdn.modrinth.com/data/zkOjCWFT/versions/Owvb24mM/volt-mc26.2-0.7.0-alpha.1.jar",
+    "sha512": "9c39f8b4bc79519ab2c9ef9839633193acf464b3806e1f030f29b7e0ca2a4d42f67ac6caa198c1b077219579efc329a5c88e83da76f41e492718a69c11986c14",
+    "minecraft": "26.2",
+    "version": "0.7.0-alpha.1+mc26.2.fabric"
+  },
+  {
+    "filename": "volt-mc26.3-0.7.0-alpha.1.jar",
+    "url": "https://cdn.modrinth.com/data/zkOjCWFT/versions/vjkBtB8v/volt-mc26.3-0.7.0-alpha.1.jar",
+    "sha512": "f38a0a10b27a791a82f90473bb4610fb587c9b27f025c6df0f04f9a0cbf385d4090613a601fb9b07b5c2e79ca9b5f9056fc192f31e39fe9df7f6e2625165d233",
+    "minecraft": "26.3",
+    "version": "0.7.0-alpha.1+mc26.3.fabric"
   }
 ]

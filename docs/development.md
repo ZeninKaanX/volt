@@ -18,8 +18,16 @@ protection, recorder shutdown and the BGRA capture fallback.
   blur affecting custom labels and clip cards.
 - Minecraft 1.20.1 Fabric on Java 17: exact production recording passed and visual
   inspection confirmed smooth text, the search hint and readable clip cards.
+- Minecraft 1.21.11 controlled process termination: a 6.27-second unfinished
+  recording was recovered on restart, preserving the manual marker and world metadata.
+  See `verification/v7/native-crash-recovery.json`.
+- Minecraft 26.2 and 26.3: actual playable 720p MP4 output was decoded and visually
+  checked for orientation and color. The 26.3 RenderPearl implementation uses GPU
+  resizing and three bounded asynchronous readback buffers with Vulkan; RGBA color
+  conversion runs in the background encoder. It does not call OpenGL directly.
 - Older API adapters also correct texture blending and GUI scissor coordinates.
-  Each remaining artifact needs its own final runtime receipt before publication.
+  All 24 release artifacts now have matching runtime receipts and playable MP4 checks.
+  See `verification/v7/runtime-matrix.json` for hashes and compiler provenance.
 
 The installed 1.21.11 Prism build is backed up alongside the previous version.
 The compatibility test copies mod JARs into its own directory; it does not copy

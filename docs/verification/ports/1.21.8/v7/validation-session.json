@@ -3,13 +3,22 @@
   "loader": "fabric",
   "fabric_loader": "0.16.14",
   "version": "0.7.0-alpha.1",
-  "sha512": "6841f20819bb7669d6b88f9c9b2cab49b8fe3a21a366a3060eeeb88d7c0d12b5199c0b4c9149e4ca649abc74d09f0df784c0fbaf76427e8999b67f63653ce070",
+  "sha512": "2c8bce440b9f7625f1aa9f8076811737a7c8d3ebb688a15faaff5399630c054e3c46b3593052bb00190d014a73f165930c89edb1fa6f78a28dc14013c730f16e",
   "status": "runtime-verified",
   "mode": "session",
   "failures": 0,
   "new_clips": 1,
   "log": "run/native/1.21.8/native-session.log",
-  "recording_seconds": 3.3,
+  "java_major": 21,
+  "fullscreen": true,
+  "fullscreen_width": 1920,
+  "fullscreen_height": 1080,
+  "installed_mod_jars": [
+    "fabric-api-0.136.1+1.21.8.jar",
+    "volt-mc1.21.8-0.7.0-alpha.1-smoke.jar",
+    "volt-mc1.21.8-0.7.0-alpha.1.jar"
+  ],
+  "recording_seconds": 3.233333,
   "width": 1280,
   "height": 720
 }

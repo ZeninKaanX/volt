@@ -1,0 +1,566 @@
+{
+  "version": "0.7.0-alpha.1",
+  "loader": "fabric",
+  "environment": "Linux, Intel integrated GPU, hardware VAAPI encoding; isolated offline test worlds",
+  "entries": [
+    {
+      "minecraft": "1.20",
+      "filename": "volt-mc1.20-0.7.0-alpha.1.jar",
+      "sha512": "f6fa9644d3cbd870440fe2763e59c461af0e25e41e20ec9dad41de1afe18b129c9be8d71573af68e806c34b252300c6d1a4c9a1648c2f487e1b5e795cfc19017",
+      "tests": 34,
+      "test_failures": 0,
+      "source_sha256": "96e7886ff9888c3bca7bd97b6be18e76c3f1fc2cc3410a11fe469d7449af8c56",
+      "runtime_status": "runtime-verified",
+      "recording_seconds": 3.3,
+      "fullscreen_width": 1920,
+      "fullscreen_height": 1080,
+      "decoded_rgb_mean": [
+        107.335,
+        127.852,
+        137.757
+      ],
+      "decoded_rgb_stddev": [
+        48.255,
+        52.578,
+        94.97
+      ],
+      "receipt": "../ports/1.20/v7/validation-session.json"
+    },
+    {
+      "minecraft": "1.20.1",
+      "filename": "volt-mc1.20.1-0.7.0-alpha.1.jar",
+      "sha512": "ab86e22067a4a4b44400925619fce3e2aad414aed613f585b02892c825552a631455325b52c21856f3f675f1be0796716cd8f09b8662045be554183d37e45ed4",
+      "tests": 34,
+      "test_failures": 0,
+      "source_sha256": "be0ffa75b67ef1d5fabfc49ae547450be9af31ebab7e180a58e773fe8da8b07e",
+      "runtime_status": "runtime-verified",
+      "recording_seconds": 3.266667,
+      "fullscreen_width": 1920,
+      "fullscreen_height": 1080,
+      "decoded_rgb_mean": [
+        109.728,
+        129.927,
+        139.311
+      ],
+      "decoded_rgb_stddev": [
+        50.243,
+        54.172,
+        96.569
+      ],
+      "receipt": "../ports/1.20.1/v7/validation-session.json"
+    },
+    {
+      "minecraft": "1.20.2",
+      "filename": "volt-mc1.20.2-0.7.0-alpha.1.jar",
+      "sha512": "e5d49a693d1d614fd303ea6928f76e4df92a0d72022c5b9900770c376c63c1e811778906d88dc6f57687e24226714a0095d73c32976cba180d5e30cf2543477c",
+      "tests": 34,
+      "test_failures": 0,
+      "source_sha256": "0a59b94b99ee05180bdc91e0b9075fae636a4c5538cfd2b6a467936de8d0d6b7",
+      "runtime_status": "runtime-verified",
+      "recording_seconds": 3.3,
+      "fullscreen_width": 1920,
+      "fullscreen_height": 1080,
+      "decoded_rgb_mean": [
+        111.803,
+        132.444,
+        141.693
+      ],
+      "decoded_rgb_stddev": [
+        50.468,
+        54.243,
+        97.921
+      ],
+      "receipt": "../ports/1.20.2/v7/validation-session.json"
+    },
+    {
+      "minecraft": "1.20.3",
+      "filename": "volt-mc1.20.3-0.7.0-alpha.1.jar",
+      "sha512": "75bcbadeacea94aa1bf1cb70a3be710410defe7945626e4ea004d172b34617cae608694bfc1e1dd24ed4488e6fb0783fb53411aa7345e761fc9029dff2b6dbeb",
+      "tests": 34,
+      "test_failures": 0,
+      "source_sha256": "0a59b94b99ee05180bdc91e0b9075fae636a4c5538cfd2b6a467936de8d0d6b7",
+      "runtime_status": "runtime-verified",
+      "recording_seconds": 3.333333,
+      "fullscreen_width": 1920,
+      "fullscreen_height": 1080,
+      "decoded_rgb_mean": [
+        111.082,
+        131.5,
+        141.157
+      ],
+      "decoded_rgb_stddev": [
+        50.792,
+        54.728,
+        97.709
+      ],
+      "receipt": "../ports/1.20.3/v7/validation-session.json"
+    },
+    {
+      "minecraft": "1.20.4",
+      "filename": "volt-mc1.20.4-0.7.0-alpha.1.jar",
+      "sha512": "ef4d10e3a97fd4835188339b26f5f0f46dfcffaf987a392ee1a19099af9cedd4ca0aeaee2d7a0c1cd518d685ff09c17d1a5b67c42cb2e361c05319228d63c031",
+      "tests": 34,
+      "test_failures": 0,
+      "source_sha256": "96e7886ff9888c3bca7bd97b6be18e76c3f1fc2cc3410a11fe469d7449af8c56",
+      "runtime_status": "runtime-verified",
+      "recording_seconds": 3.3,
+      "fullscreen_width": 1920,
+      "fullscreen_height": 1080,
+      "decoded_rgb_mean": [
+        107.226,
+        127.827,
+        137.854
+      ],
+      "decoded_rgb_stddev": [
+        47.998,
+        52.393,
+        94.926
+      ],
+      "receipt": "../ports/1.20.4/v7/validation-session.json"
+    },
+    {
+      "minecraft": "1.20.5",
+      "filename": "volt-mc1.20.5-0.7.0-alpha.1.jar",
+      "sha512": "b2a4e76b8bf176052c359d7e804f1b782c1228f0aa876732ddcefecd5f40ab50870954095085fc19ff4be7ce7cf9e7b63a314d22e1f3891b8db08051b1bdb25d",
+      "tests": 34,
+      "test_failures": 0,
+      "source_sha256": "96e7886ff9888c3bca7bd97b6be18e76c3f1fc2cc3410a11fe469d7449af8c56",
+      "runtime_status": "runtime-verified",
+      "recording_seconds": 3.3,
+      "fullscreen_width": 1920,
+      "fullscreen_height": 1080,
+      "decoded_rgb_mean": [
+        109.42,
+        129.907,
+        139.723
+      ],
+      "decoded_rgb_stddev": [
+        49.624,
+        53.687,
+        96.652
+      ],
+      "receipt": "../ports/1.20.5/v7/validation-session.json"
+    },
+    {
+      "minecraft": "1.20.6",
+      "filename": "volt-mc1.20.6-0.7.0-alpha.1.jar",
+      "sha512": "14261b9bc3a750cacdd9caf6bd9765b1ff71fd59f74b602960bf581e51077b55f2d0763f38755b676032f6c368c467c6b60720b8bfa2c41106038e2219b5db76",
+      "tests": 34,
+      "test_failures": 0,
+      "source_sha256": "96e7886ff9888c3bca7bd97b6be18e76c3f1fc2cc3410a11fe469d7449af8c56",
+      "runtime_status": "runtime-verified",
+      "recording_seconds": 3.3,
+      "fullscreen_width": 1920,
+      "fullscreen_height": 1080,
+      "decoded_rgb_mean": [
+        109.809,
+        130.287,
+        139.849
+      ],
+      "decoded_rgb_stddev": [
+        49.733,
+        53.655,
+        96.682
+      ],
+      "receipt": "../ports/1.20.6/v7/validation-session.json"
+    },
+    {
+      "minecraft": "1.21",
+      "filename": "volt-mc1.21-0.7.0-alpha.1.jar",
+      "sha512": "4d28ec774349a3878c5b84cac7ee485496789f2cbcfecf625c0eb5dec207237eb4db5da38916e4fb28b73dd5f915c1c9dd39f855834a32d2d1a090c385d7a7eb",
+      "tests": 34,
+      "test_failures": 0,
+      "source_sha256": "96e7886ff9888c3bca7bd97b6be18e76c3f1fc2cc3410a11fe469d7449af8c56",
+      "runtime_status": "runtime-verified",
+      "recording_seconds": 3.3,
+      "fullscreen_width": 1920,
+      "fullscreen_height": 1080,
+      "decoded_rgb_mean": [
+        110.082,
+        130.434,
+        139.975
+      ],
+      "decoded_rgb_stddev": [
+        50.332,
+        54.262,
+        96.942
+      ],
+      "receipt": "../ports/1.21/v7/validation-session.json"
+    },
+    {
+      "minecraft": "1.21.1",
+      "filename": "volt-mc1.21.1-0.7.0-alpha.1.jar",
+      "sha512": "cdb6d5324cab9343d1b52cadec16bc586c9512a3645836f6154332e23cde6c1be38c89bce6876109bd2fcb2cb2a8b2715a50b9514081d426cc9bfbfb7ddd9c02",
+      "tests": 34,
+      "test_failures": 0,
+      "source_sha256": "be0ffa75b67ef1d5fabfc49ae547450be9af31ebab7e180a58e773fe8da8b07e",
+      "runtime_status": "runtime-verified",
+      "recording_seconds": 3.3,
+      "fullscreen_width": 1920,
+      "fullscreen_height": 1080,
+      "decoded_rgb_mean": [
+        107.938,
+        128.808,
+        139.339
+      ],
+      "decoded_rgb_stddev": [
+        48.198,
+        52.754,
+        96.262
+      ],
+      "receipt": "../ports/1.21.1/v7/validation-session.json"
+    },
+    {
+      "minecraft": "1.21.2",
+      "filename": "volt-mc1.21.2-0.7.0-alpha.1.jar",
+      "sha512": "31a41ff2ff70e6aeca306dca482c1eb68441c5a58a611893942ead1cf20c0915856be12b6cc20b1beb540b5776e49d809266fae9491e4adf1f4c82dfa8771807",
+      "tests": 34,
+      "test_failures": 0,
+      "source_sha256": "0a59b94b99ee05180bdc91e0b9075fae636a4c5538cfd2b6a467936de8d0d6b7",
+      "runtime_status": "runtime-verified",
+      "recording_seconds": 3.3,
+      "fullscreen_width": 1920,
+      "fullscreen_height": 1080,
+      "decoded_rgb_mean": [
+        109.936,
+        130.676,
+        140.338
+      ],
+      "decoded_rgb_stddev": [
+        49.601,
+        53.41,
+        96.987
+      ],
+      "receipt": "../ports/1.21.2/v7/validation-session.json"
+    },
+    {
+      "minecraft": "1.21.3",
+      "filename": "volt-mc1.21.3-0.7.0-alpha.1.jar",
+      "sha512": "e70cd3751188c57a4edee5e05727bdd353ef2e10e55dbedccf017ac7cfa09037502b13574f0b04dd64e79d66954f3fa63bb79263d204d5a1cd6989fb08caf623",
+      "tests": 34,
+      "test_failures": 0,
+      "source_sha256": "0a59b94b99ee05180bdc91e0b9075fae636a4c5538cfd2b6a467936de8d0d6b7",
+      "runtime_status": "runtime-verified",
+      "recording_seconds": 3.266667,
+      "fullscreen_width": 1920,
+      "fullscreen_height": 1080,
+      "decoded_rgb_mean": [
+        108.238,
+        129.132,
+        139.701
+      ],
+      "decoded_rgb_stddev": [
+        48.555,
+        52.848,
+        96.451
+      ],
+      "receipt": "../ports/1.21.3/v7/validation-session.json"
+    },
+    {
+      "minecraft": "1.21.4",
+      "filename": "volt-mc1.21.4-0.7.0-alpha.1.jar",
+      "sha512": "940ee1572e29b69c1df2b8deb5756f2515eb1882ef629d88374febf268730810c90c46887e83c42da1b0a581f74db574cec9406a18602aa56b910b6c65c0be74",
+      "tests": 34,
+      "test_failures": 0,
+      "source_sha256": "0a59b94b99ee05180bdc91e0b9075fae636a4c5538cfd2b6a467936de8d0d6b7",
+      "runtime_status": "runtime-verified",
+      "recording_seconds": 3.3,
+      "fullscreen_width": 1920,
+      "fullscreen_height": 1080,
+      "decoded_rgb_mean": [
+        108.836,
+        129.527,
+        139.817
+      ],
+      "decoded_rgb_stddev": [
+        49.384,
+        53.359,
+        96.566
+      ],
+      "receipt": "../ports/1.21.4/v7/validation-session.json"
+    },
+    {
+      "minecraft": "1.21.5",
+      "filename": "volt-mc1.21.5-0.7.0-alpha.1.jar",
+      "sha512": "a4b064bb33452e6825448c779a558bebeaba08259f293d18649cc7719c4a0cee73886649e4c05e247597003e755ffa5f6f0776f6e5af60ad66c64308a739ba36",
+      "tests": 34,
+      "test_failures": 0,
+      "source_sha256": "5897ff28f17d472a212221e94899347fae6d468db53c8c8b82efe7bc952a28cc",
+      "runtime_status": "runtime-verified",
+      "recording_seconds": 3.233333,
+      "fullscreen_width": 1920,
+      "fullscreen_height": 1080,
+      "decoded_rgb_mean": [
+        110.808,
+        131.243,
+        140.535
+      ],
+      "decoded_rgb_stddev": [
+        50.696,
+        54.187,
+        97.136
+      ],
+      "receipt": "../ports/1.21.5/v7/validation-session.json"
+    },
+    {
+      "minecraft": "1.21.6",
+      "filename": "volt-mc1.21.6-0.7.0-alpha.1.jar",
+      "sha512": "708af655a445b70a25f63449086d7cc71fbc81c981e56d34432002f6a62f083eeeec26913f4d013e41af3c3843922c947f9d3c09270effc42e43106686143fa6",
+      "tests": 34,
+      "test_failures": 0,
+      "source_sha256": "0a59b94b99ee05180bdc91e0b9075fae636a4c5538cfd2b6a467936de8d0d6b7",
+      "runtime_status": "runtime-verified",
+      "recording_seconds": 3.3,
+      "fullscreen_width": 1920,
+      "fullscreen_height": 1080,
+      "decoded_rgb_mean": [
+        110.692,
+        129.164,
+        136.176
+      ],
+      "decoded_rgb_stddev": [
+        49.089,
+        51.882,
+        91.932
+      ],
+      "receipt": "../ports/1.21.6/v7/validation-session.json"
+    },
+    {
+      "minecraft": "1.21.7",
+      "filename": "volt-mc1.21.7-0.7.0-alpha.1.jar",
+      "sha512": "186ffdc61faaba375a8b306708dfcd060df7d88f729bf55f6a4a8a4ad7ae4035bd0746dd18a25a432a18d81c2a4c990e3bca58803b745b95e0a7d639a099da14",
+      "tests": 34,
+      "test_failures": 0,
+      "source_sha256": "0a59b94b99ee05180bdc91e0b9075fae636a4c5538cfd2b6a467936de8d0d6b7",
+      "runtime_status": "runtime-verified",
+      "recording_seconds": 3.3,
+      "fullscreen_width": 1920,
+      "fullscreen_height": 1080,
+      "decoded_rgb_mean": [
+        111.06,
+        129.449,
+        136.236
+      ],
+      "decoded_rgb_stddev": [
+        49.471,
+        52.146,
+        92.089
+      ],
+      "receipt": "../ports/1.21.7/v7/validation-session.json"
+    },
+    {
+      "minecraft": "1.21.8",
+      "filename": "volt-mc1.21.8-0.7.0-alpha.1.jar",
+      "sha512": "2c8bce440b9f7625f1aa9f8076811737a7c8d3ebb688a15faaff5399630c054e3c46b3593052bb00190d014a73f165930c89edb1fa6f78a28dc14013c730f16e",
+      "tests": 34,
+      "test_failures": 0,
+      "source_sha256": "96e7886ff9888c3bca7bd97b6be18e76c3f1fc2cc3410a11fe469d7449af8c56",
+      "runtime_status": "runtime-verified",
+      "recording_seconds": 3.233333,
+      "fullscreen_width": 1920,
+      "fullscreen_height": 1080,
+      "decoded_rgb_mean": [
+        110.746,
+        129.213,
+        136.216
+      ],
+      "decoded_rgb_stddev": [
+        49.163,
+        51.891,
+        91.922
+      ],
+      "receipt": "../ports/1.21.8/v7/validation-session.json"
+    },
+    {
+      "minecraft": "1.21.9",
+      "filename": "volt-mc1.21.9-0.7.0-alpha.1.jar",
+      "sha512": "2a2c95f49b9009140c95a46ce891e262ea6d55a63042a3bd4173291b01301536fdf4cf82788716f7056bb5057ce80ef8ccc4e67c94c6e514c5788275ee01f914",
+      "tests": 34,
+      "test_failures": 0,
+      "source_sha256": "96e7886ff9888c3bca7bd97b6be18e76c3f1fc2cc3410a11fe469d7449af8c56",
+      "runtime_status": "runtime-verified",
+      "recording_seconds": 3.266667,
+      "fullscreen_width": 1920,
+      "fullscreen_height": 1080,
+      "decoded_rgb_mean": [
+        108.242,
+        126.515,
+        135.492
+      ],
+      "decoded_rgb_stddev": [
+        49.009,
+        52.573,
+        89.955
+      ],
+      "receipt": "../ports/1.21.9/v7/validation-session.json"
+    },
+    {
+      "minecraft": "1.21.10",
+      "filename": "volt-mc1.21.10-0.7.0-alpha.1.jar",
+      "sha512": "a2abdd5e2342806dcd30edddeac82995c8bd1b05b298af8aab02cb820ddae69154cf4feaceef62eaaf79032afd585ee5dea3842d5a9f95c2e5de4fada0bcab1a",
+      "tests": 34,
+      "test_failures": 0,
+      "source_sha256": "0a59b94b99ee05180bdc91e0b9075fae636a4c5538cfd2b6a467936de8d0d6b7",
+      "runtime_status": "runtime-verified",
+      "recording_seconds": 3.3,
+      "fullscreen_width": 1920,
+      "fullscreen_height": 1080,
+      "decoded_rgb_mean": [
+        107.73,
+        126.21,
+        135.457
+      ],
+      "decoded_rgb_stddev": [
+        48.166,
+        51.869,
+        89.686
+      ],
+      "receipt": "../ports/1.21.10/v7/validation-session.json"
+    },
+    {
+      "minecraft": "1.21.11",
+      "filename": "volt-0.7.0-alpha.1.jar",
+      "sha512": "c56adef48dce097d02111dcdcaa5792e39d7efee99dcbfc9ca5e20473326a3d4a0f2b51d0efa731ba911cd73e5925f02b6943d199d100b7420ff0b69a73299f4",
+      "tests": 34,
+      "test_failures": 0,
+      "source_sha256": "a1fcf0fda8b2a533d759bd7cb5c172e401b08688d2a2f3532334e204ffdeef49",
+      "runtime_status": "runtime-verified",
+      "recording_seconds": 3.3,
+      "fullscreen_width": 1920,
+      "fullscreen_height": 1080,
+      "decoded_rgb_mean": [
+        108.336,
+        127.322,
+        139.208
+      ],
+      "decoded_rgb_stddev": [
+        50.612,
+        55.002,
+        93.188
+      ],
+      "receipt": "../ports/1.21.11/v7/validation-session.json"
+    },
+    {
+      "minecraft": "26.1",
+      "filename": "volt-mc26.1-0.7.0-alpha.1.jar",
+      "sha512": "0c7ae2d9f308993495edad52162029165d68142dba318031dc089016fc8d8405c332383c6d04b7c99e758655ac7b8d858749f16d6db6dc8107f3729a0461bfd0",
+      "tests": 34,
+      "test_failures": 0,
+      "source_sha256": "6ed07239110e62e111278a16cb01f08480546fff79163f89943e7d8bfdda935f",
+      "runtime_status": "runtime-verified",
+      "recording_seconds": 3.3,
+      "fullscreen_width": 1920,
+      "fullscreen_height": 1080,
+      "decoded_rgb_mean": [
+        106.689,
+        126.652,
+        138.593
+      ],
+      "decoded_rgb_stddev": [
+        47.653,
+        52.515,
+        91.496
+      ],
+      "receipt": "../ports/26.1/v7/validation-session.json"
+    },
+    {
+      "minecraft": "26.1.1",
+      "filename": "volt-mc26.1.1-0.7.0-alpha.1.jar",
+      "sha512": "bdf0c1756107124f9312397ee95102f3d9091e4e2b72a0065e3106cb434e11236f234f70a908a5d780cdbd558b5229f634a5eefda012f6b48d7e221c65afcab9",
+      "tests": 34,
+      "test_failures": 0,
+      "source_sha256": "fcd96f210a5b3155a7c9cd2e52ee2440e8164e867f992c1db561eba2e4c7af45",
+      "runtime_status": "runtime-verified",
+      "recording_seconds": 3.333333,
+      "fullscreen_width": 1920,
+      "fullscreen_height": 1080,
+      "decoded_rgb_mean": [
+        112.537,
+        132.288,
+        143.249
+      ],
+      "decoded_rgb_stddev": [
+        50.233,
+        54.03,
+        94.231
+      ],
+      "receipt": "../ports/26.1.1/v7/validation-session.json"
+    },
+    {
+      "minecraft": "26.1.2",
+      "filename": "volt-mc26.1.2-0.7.0-alpha.1.jar",
+      "sha512": "97d99a13c750cd4d77de47cd4aa33fc212bcbe92f15b4efe65649ef4d7273f9b5b5b0b3e7b169beb6d1f0d83f748db75a962f2234c8391f2d15df1bce5763272",
+      "tests": 34,
+      "test_failures": 0,
+      "source_sha256": "96e7886ff9888c3bca7bd97b6be18e76c3f1fc2cc3410a11fe469d7449af8c56",
+      "runtime_status": "runtime-verified",
+      "recording_seconds": 3.266667,
+      "fullscreen_width": 1920,
+      "fullscreen_height": 1080,
+      "decoded_rgb_mean": [
+        108.222,
+        127.755,
+        138.819
+      ],
+      "decoded_rgb_stddev": [
+        49.263,
+        53.621,
+        91.885
+      ],
+      "receipt": "../ports/26.1.2/v7/validation-session.json"
+    },
+    {
+      "minecraft": "26.2",
+      "filename": "volt-mc26.2-0.7.0-alpha.1.jar",
+      "sha512": "9c39f8b4bc79519ab2c9ef9839633193acf464b3806e1f030f29b7e0ca2a4d42f67ac6caa198c1b077219579efc329a5c88e83da76f41e492718a69c11986c14",
+      "tests": 34,
+      "test_failures": 0,
+      "source_sha256": "b339a46f2165e895afa288db2cf87f2560fe62ffe88e64c56898ef89868b2269",
+      "runtime_status": "runtime-verified",
+      "recording_seconds": 3.266667,
+      "fullscreen_width": 1920,
+      "fullscreen_height": 1080,
+      "decoded_rgb_mean": [
+        108.879,
+        127.289,
+        136.218
+      ],
+      "decoded_rgb_stddev": [
+        49.258,
+        52.836,
+        89.651
+      ],
+      "receipt": "../ports/26.2/v7/validation-session.json"
+    },
+    {
+      "minecraft": "26.3",
+      "filename": "volt-mc26.3-0.7.0-alpha.1.jar",
+      "sha512": "f38a0a10b27a791a82f90473bb4610fb587c9b27f025c6df0f04f9a0cbf385d4090613a601fb9b07b5c2e79ca9b5f9056fc192f31e39fe9df7f6e2625165d233",
+      "tests": 34,
+      "test_failures": 0,
+      "source_sha256": "829c4be0b5ff180dbbcaf3e56f942cec9e1a40f02a5237929e19225e897ad3bb",
+      "runtime_status": "runtime-verified",
+      "recording_seconds": 3.266667,
+      "fullscreen_width": 1920,
+      "fullscreen_height": 1080,
+      "decoded_rgb_mean": [
+        100.616,
+        119.6,
+        130.159
+      ],
+      "decoded_rgb_stddev": [
+        49.108,
+        54.975,
+        92.26
+      ],
+      "receipt": "../ports/26.3/v7/validation-session.json"
+    }
+  ],
+  "notes": [
+    "Every listed production JAR matched its compile and runtime SHA-512 proof.",
+    "Each exact JAR produced a playable MP4; decoded frames contain nonblank image data.",
+    "Representative UI and decoded frames were visually inspected, including 26.3 Vulkan.",
+    "A pre-release 1.21 launch was terminated by SIGKILL before capture; its separate retry is the final receipt. Cause was not established; no Java crash or kernel/systemd OOM report was found.",
+    "Runtime checks do not establish Windows/macOS, every shader or every mod combination compatibility."
+  ]
+}

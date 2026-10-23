@@ -15,7 +15,8 @@ a local clip library and a full-screen editor in a clean interface.
 - Minecraft nickname, profile customization and selectable avatars.
 - Smooth interface lettering and English/Turkish translations, following Minecraft's language.
 - Optional Discord desktop activity: **Clipped with Volt**. No Discord ID or account token required.
-- GPU downscaling and color conversion, bounded frame queues and supported hardware encoders.
+- GPU downscaling, bounded asynchronous readback and supported hardware encoders.
+  GPU color conversion is available on the OpenGL capture path; the 26.3 RenderPearl path also supports Vulkan capture.
 
 ## Installation
 

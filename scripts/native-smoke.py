@@ -10,6 +10,7 @@ import platform
 import re
 import shutil
 import signal
+import struct
 import subprocess
 import time
 import urllib.request
@@ -239,6 +240,11 @@ def main():
         return
     assert code == 0, f'Native smoke failed ({code}); see {log}'
     assert digest(jar, 'sha512') == original_hash, 'Artifact changed during runtime validation'
+    screenshot = run / 'screenshots/01-clips.png'
+    header = screenshot.read_bytes()[:24]
+    assert header[:8] == b'\x89PNG\r\n\x1a\n', 'Missing native UI screenshot'
+    screen_width, screen_height = struct.unpack('>II', header[16:24])
+    assert (screen_width, screen_height) == (1920, 1080), 'Unexpected fullscreen screenshot dimensions'
     text = log.read_text()
     assert 'VOLT_RUNTIME fullscreen=true' in text, 'Fullscreen state was not confirmed'
     if args.mode == 'library':
@@ -250,7 +256,7 @@ def main():
     new = set((run / 'volt/clips').glob('*.mp4')) - before
     receipt = dict(minecraft=mc, loader='fabric', fabric_loader=loader, version=meta['version'], sha512=original_hash,
         status='runtime-verified', mode=args.mode, failures=0, new_clips=len(new), log=str(log.relative_to(ROOT)))
-    receipt.update(java_major=target['java'], fullscreen=True,
+    receipt.update(java_major=target['java'], fullscreen=True, fullscreen_width=screen_width, fullscreen_height=screen_height,
         installed_mod_jars=sorted(file.name for file in mods.glob('*.jar')))
     if args.mode != 'library':
         assert new, 'No new MP4 was created'

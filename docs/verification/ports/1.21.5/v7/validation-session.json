@@ -11,5 +11,7 @@
   "log": "run/native/1.21.5/native-session.log",
   "recording_seconds": 3.233333,
   "width": 1280,
-  "height": 720
+  "height": 720,
+  "fullscreen_width": 1920,
+  "fullscreen_height": 1080
 }

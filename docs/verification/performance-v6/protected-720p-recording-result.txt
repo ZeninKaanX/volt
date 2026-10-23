@@ -1,0 +1,1 @@
+Recorder=BUFFERING Encoder=h264_vaapi GPUms=2.028461 persistentReadback=true averageCaptureMillis=0.6703076427687233 captured=356 Missed=0 Clips=12

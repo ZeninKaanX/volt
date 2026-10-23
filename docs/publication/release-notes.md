@@ -1,18 +1,27 @@
-Volt's first public alpha includes instant replay, longer recordings, automatic
-Minecraft highlights, a local clip library, trimming and export controls, smooth
-interface lettering and optional **Clipped with Volt** Discord activity.
+Volt 0.7 adds safer recording and clip management to the in-game studio:
 
-Choose the JAR for your exact Minecraft version. These downloads are for
-**Fabric only** and require matching Fabric API, Java 21 and a separately
-installed FFmpeg executable.
+- Long recordings finalize automatically when leaving a world. Intact interrupted
+  segments can be recovered on the next recorder start; a controlled restart test
+  recovered a real 6.27-second recording with its marker and world metadata.
+- Recently deleted clips, bulk restore, undo and keyboard shortcuts.
+- Minimal, Soft and Electric feedback styles with independent button and
+  notification volumes. Smooth text and corrected legacy GUI blending/scissors.
+- GPU downscaling, bounded frame queues and supported hardware encoders. The 26.3
+  build uses RenderPearl asynchronous readback and works with Vulkan.
 
-The 1.21.9 and 1.21.10 ports each passed 27 tests and fullscreen 1920×1080
-in-game recording checks, producing playable hardware-encoded MP4 clips.
-The 1.21.11 build was also tested with the user's Prism modpack.
+Choose the JAR for your exact Minecraft version. Fabric and matching Fabric API
+are required. Java 17 is used for 1.20–1.20.4, Java 21 for 1.20.5–1.21.11 and
+Java 25 for 26.x. FFmpeg must be installed separately.
 
-Link sharing requires a separately configured upload service. Audio setup varies
-by platform. Recording uses resources; zero FPS loss is not guaranteed. This
-alpha does not yet recover unfinished long recordings after a crash.
+Every release JAR has its own exact SHA-512 runtime receipt and produced a playable
+MP4 in an isolated fullscreen Minecraft session. The 1.21.11 build was also checked
+with the installed Prism mod JARs, including Sodium, Iris, Lithium, Atlas, EVATEX
+and AAC Plus. This does not guarantee every mod, shader or GPU combination.
 
-Every downloadable JAR is identical to its Modrinth upload. SHA512SUMS is included.
-Additional versions and loaders are still being ported.
+Link sharing requires a configured upload service. Inline previews are silent.
+Audio setup varies by platform; Windows/macOS were not validated here. Recovery
+requires intact source files and writable storage. Recording uses resources; zero
+FPS loss is not guaranteed, and no matched Medal benchmark was performed.
+
+GitHub downloads are byte-identical to the Modrinth uploads. SHA512SUMS is included.
+Modrinth project visibility depends on its moderation status.

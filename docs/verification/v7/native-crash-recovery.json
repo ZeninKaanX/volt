@@ -1,0 +1,33 @@
+{
+  "minecraft": "1.21.11",
+  "version": "0.7.0-alpha.1",
+  "sha512": "c56adef48dce097d02111dcdcaa5792e39d7efee99dcbfc9ca5e20473326a3d4a0f2b51d0efa731ba911cd73e5925f02b6943d199d100b7420ff0b69a73299f4",
+  "status": "crash-recovery-verified",
+  "controlled_termination": "SIGKILL isolated test process group only",
+  "expected_seconds": 6.205457665000001,
+  "recovered_video_seconds": 6.266667,
+  "metadata": {
+    "id": "5449bc1a-5234-45e6-8f9e-ff810cdfb009",
+    "title": "Volt Smoke \u00b7 23.10 08:15:11",
+    "file": "5449bc1a-5234-45e6-8f9e-ff810cdfb009.mp4",
+    "player": "VoltTester",
+    "world": "Volt Smoke",
+    "dimension": "minecraft:overworld",
+    "created": 1792732511539,
+    "seconds": 6.233404776,
+    "favorite": false,
+    "recovered": true,
+    "trashedAt": 0,
+    "shareUrl": "",
+    "captureReason": "",
+    "comboHits": 0,
+    "markers": [
+      {
+        "second": 1.088989149,
+        "kind": "manual"
+      }
+    ]
+  },
+  "source_journal_removed": true,
+  "failures": 0
+}
